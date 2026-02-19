@@ -62,21 +62,28 @@ public class BoardService {
         return new BoardDetailResponse(board);
     }
 
-    // 수정용 폼 조회 - 추가
+    // 수정용 폼 조회 - 06장에서 작성
     public BoardForm getFormById(Long id) {
         Board board = boardRepository.findByIdWithMember(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
         return BoardForm.from(board);
     }
 
-    // 게시글 수정 - 추가
+    // 게시글 수정 - 06장에서 작성
     @Transactional
     public void update(Long id, BoardForm form) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
 
         board.update(form.getTitle(), form.getContent());
-        // 변경 감지(Dirty Checking)로 자동 UPDATE
+    }
+
+    // 게시글 삭제 - 추가
+    @Transactional
+    public void delete(Long id) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+        boardRepository.delete(board);
     }
 
     // 목록 조회 (페이징) - 03장에서 작성
