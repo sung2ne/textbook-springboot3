@@ -11,8 +11,6 @@ import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +26,7 @@ public class BoardService {
     private final MemberRepository memberRepository;
     private final AttachmentService attachmentService;
 
-    // 게시글 저장 - 04장에서 작성
+    // 게시글 저장 - 10장에서 작성 (비인증 - 작성자명 입력)
     @Transactional
     public Long save(BoardForm form) {
         Member member = memberRepository.findByName(form.getWriterName())
@@ -49,10 +47,38 @@ public class BoardService {
         return boardRepository.save(board).getId();
     }
 
-    // 게시글 저장 (인증된 사용자용, 파일 포함) - 메서드 보안 적용
-    @PreAuthorize("isAuthenticated()")
+    // 게시글 저장 (파일 포함) - 10장에서 작성
+    @Transactional
+    public Long save(BoardForm form, List<MultipartFile> files) {
+        Member member = memberRepository.findByName(form.getWriterName())
+                .orElseGet(() -> memberRepository.save(
+                        Member.builder()
+                                .name(form.getWriterName())
+                                .email(form.getWriterName() + "@temp.com")
+                                .password("temp")
+                                .build()
+                ));
+
+        Board board = Board.builder()
+                .title(form.getTitle())
+                .content(form.getContent())
+                .member(member)
+                .build();
+
+        Board saved = boardRepository.save(board);
+
+        // 첨부파일 저장
+        if (files != null && !files.isEmpty()) {
+            attachmentService.saveAll(files, saved);
+        }
+
+        return saved.getId();
+    }
+
+    // 게시글 저장 (인증 기반) - 추가
     @Transactional
     public Long save(BoardForm form, String username, List<MultipartFile> files) {
+        // 로그인한 사용자 조회
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다"));
 
@@ -83,11 +109,15 @@ public class BoardService {
         return new BoardDetailResponse(board);
     }
 
-    // 상세 조회 (권한 체크용) - 추가
-    @PostAuthorize("returnObject.member.username == authentication.name or hasRole('ADMIN')")
-    public Board findByIdWithAuth(Long id) {
-        return boardRepository.findById(id)
+    // 상세 조회 (댓글 포함, 조회수 증가) - 추가
+    @Transactional
+    public BoardDetailResponse findByIdWithComments(Long id) {
+        Board board = boardRepository.findByIdWithMemberAndComments(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+
+        board.increaseViewCount();
+
+        return new BoardDetailResponse(board);
     }
 
     // 상세 조회 (조회수 증가 없이 - 수정 폼용) - 05장에서 작성
@@ -114,15 +144,12 @@ public class BoardService {
         board.update(form.getTitle(), form.getContent());
     }
 
-    // 게시글 수정 (메서드 보안 + 파일 포함) - 변경
-    // 어노테이션이 내부 권한 검증 로직을 대체
-    @PreAuthorize("@boardSecurityService.isOwner(#id, authentication.name) or hasRole('ADMIN')")
+    // 게시글 수정 (파일 포함) - 10장 05절에서 추가
     @Transactional
-    public void update(Long id, BoardForm form, String username, List<MultipartFile> files) {
+    public void update(Long id, BoardForm form, List<MultipartFile> files) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
 
-        // 08장의 권한 검증 로직이 @PreAuthorize로 대체됨
         board.update(form.getTitle(), form.getContent());
 
         // 새 첨부파일 저장
@@ -131,31 +158,12 @@ public class BoardService {
         }
     }
 
-    // 게시글 삭제 - 08장에서 작성
+    // 게시글 삭제 - 07장에서 추가
     @Transactional
     public void delete(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
         boardRepository.delete(board);
-    }
-
-    // 게시글 삭제 (메서드 보안 적용) - 추가
-    // 어노테이션이 isAdmin 파라미터 역할을 대체
-    @PreAuthorize("@boardSecurityService.isOwner(#id, authentication.name) or hasRole('ADMIN')")
-    @Transactional
-    public void delete(Long id, String username) {
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
-        boardRepository.delete(board);
-    }
-
-    // 본인 글인지 확인 - 08장에서 작성
-    public boolean isOwner(Long boardId, String username) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + boardId));
-
-        return board.getMember() != null &&
-               board.getMember().getUsername().equals(username);
     }
 
     // 목록 조회 (페이징) - 03장에서 작성
@@ -171,6 +179,26 @@ public class BoardService {
         }
         return boardRepository
                 .findByTitleContainingOrContentContaining(keyword, keyword, pageable)
+                .map(BoardListResponse::new);
+    }
+
+    // 작성자 확인 (username) - 추가
+    public boolean isOwner(Long boardId, String username) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+        return board.isWrittenBy(username);
+    }
+
+    // 작성자 확인 (Member ID) - 추가
+    public boolean isOwner(Long boardId, Long memberId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+        return board.isWrittenBy(memberId);
+    }
+
+    // 회원의 게시글 목록 (마이페이지용) - 추가
+    public Page<BoardListResponse> findByMemberId(Long memberId, Pageable pageable) {
+        return boardRepository.findByMemberId(memberId, pageable)
                 .map(BoardListResponse::new);
     }
 }

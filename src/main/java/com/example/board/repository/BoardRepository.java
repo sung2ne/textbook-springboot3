@@ -23,13 +23,27 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     // 제목으로 검색
     Page<Board> findByTitleContaining(String title, Pageable pageable);
 
-    // 상세 조회 (Member Fetch Join)
-    @Query("SELECT b FROM Board b LEFT JOIN FETCH b.member WHERE b.id = :id")
+    // 상세 조회 (Member + 첨부파일 Fetch Join) - 10장 04절에서 수정
+    @Query("SELECT b FROM Board b " +
+           "LEFT JOIN FETCH b.member " +
+           "LEFT JOIN FETCH b.attachments " +
+           "WHERE b.id = :id")
     Optional<Board> findByIdWithMember(@Param("id") Long id);
 
     // 회원별 게시글 수 조회 - 12장/03
     long countByMemberId(Long memberId);
 
-    // 회원별 게시글 목록 조회 - 추가
+    // 회원별 게시글 목록 조회 - 13장/04
     List<Board> findByMemberId(Long memberId);
+
+    // 회원별 게시글 목록 (페이징) - 추가
+    Page<Board> findByMemberId(Long memberId, Pageable pageable);
+
+    // 게시글 + 댓글 조회 (N+1 방지) - 추가
+    @Query("SELECT DISTINCT b FROM Board b " +
+           "LEFT JOIN FETCH b.member " +
+           "LEFT JOIN FETCH b.comments c " +
+           "LEFT JOIN FETCH c.member " +
+           "WHERE b.id = :id")
+    Optional<Board> findByIdWithMemberAndComments(@Param("id") Long id);
 }

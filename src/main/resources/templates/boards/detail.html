@@ -56,7 +56,7 @@
             </ul>
         </section>
 
-        <!-- 버튼 - 인증 조건 추가 -->
+        <!-- 버튼 - 인증 조건 (PART 04/08장/04에서 작성) -->
         <div class="d-flex justify-content-between">
             <a th:href="@{/boards}" class="btn btn-secondary">목록</a>
             <div sec:authorize="isAuthenticated()">
@@ -75,18 +75,14 @@
         </div>
     </article>
 
-    <!-- 댓글 영역 - 09장에서 작성 -->
+    <!-- 댓글 영역 -->
     <section class="mt-5" id="comments-section">
         <h5>댓글 <span id="comment-count" class="badge bg-secondary">0</span></h5>
 
-        <!-- 댓글 작성 폼 -->
-        <form id="comment-form" class="mb-4">
+        <!-- 댓글 작성 폼 (로그인 사용자만) - 작성자 입력 필드 제거 -->
+        <form id="comment-form" class="mb-4" sec:authorize="isAuthenticated()">
             <div class="row g-2">
-                <div class="col-md-2">
-                    <input type="text" id="comment-writer" class="form-control"
-                           placeholder="작성자" required>
-                </div>
-                <div class="col-md-8">
+                <div class="col-md-10">
                     <input type="text" id="comment-content" class="form-control"
                            placeholder="댓글을 입력하세요" required>
                 </div>
@@ -95,6 +91,13 @@
                 </div>
             </div>
         </form>
+
+        <!-- 비로그인 사용자 안내 -->
+        <div sec:authorize="isAnonymous()" class="mb-4 text-center">
+            <a th:href="@{/login}" class="btn btn-outline-primary">
+                로그인하고 댓글 작성
+            </a>
+        </div>
 
         <!-- 댓글 목록 -->
         <div id="comment-list">
@@ -106,6 +109,9 @@
 <th:block layout:fragment="script">
 <script th:inline="javascript">
     const boardId = [[${board.id}]];
+    const currentUsername = [[${currentUsername}]];
+    const isOwner = [[${isOwner}]];
+    const isAdmin = [[${isAdmin}]];
 
     // 페이지 로드 시 댓글 목록 조회
     document.addEventListener('DOMContentLoaded', function() {
@@ -140,17 +146,25 @@
                             <strong>${comment.writerName}</strong>
                             <small class="text-muted ms-2">${formatDate(comment.createdAt)}</small>
                         </div>
+                        ${canEditComment(comment) ? `
                         <div>
                             <button class="btn btn-sm btn-outline-secondary me-1"
                                     onclick="editComment(${comment.id}, '${escapeHtml(comment.content)}')">수정</button>
                             <button class="btn btn-sm btn-outline-danger"
                                     onclick="deleteComment(${comment.id})">삭제</button>
                         </div>
+                        ` : ''}
                     </div>
                     <p class="mb-0 mt-1">${comment.content}</p>
                 </div>
             </div>
         `).join('');
+    }
+
+    // 댓글 수정/삭제 권한 확인 (본인 댓글 또는 관리자)
+    function canEditComment(comment) {
+        if (!currentUsername) return false;
+        return comment.memberUsername === currentUsername || isAdmin;
     }
 
     // 날짜 포맷
@@ -162,30 +176,31 @@
         });
     }
 
-    // 댓글 작성
-    document.getElementById('comment-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const writer = document.getElementById('comment-writer').value.trim();
-        const content = document.getElementById('comment-content').value.trim();
+    // 댓글 작성 (로그인 사용자만, 작성자는 서버에서 자동 설정)
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const content = document.getElementById('comment-content').value.trim();
 
-        if (!writer || !content) {
-            alert('작성자와 내용을 입력해주세요.');
-            return;
-        }
+            if (!content) {
+                alert('내용을 입력해주세요.');
+                return;
+            }
 
-        fetch(`/api/boards/${boardId}/comments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ writer, content })
-        })
-        .then(response => response.ok ? response.json() : Promise.reject())
-        .then(() => {
-            document.getElementById('comment-writer').value = '';
-            document.getElementById('comment-content').value = '';
-            loadComments();
-        })
-        .catch(() => alert('댓글 등록에 실패했습니다.'));
-    });
+            fetch(`/api/boards/${boardId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content })  // 작성자는 서버에서 자동 설정
+            })
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(() => {
+                document.getElementById('comment-content').value = '';
+                loadComments();
+            })
+            .catch(() => alert('댓글 등록에 실패했습니다.'));
+        });
+    }
 
     // 댓글 삭제
     function deleteComment(commentId) {
@@ -203,7 +218,7 @@
         fetch(`/api/comments/${commentId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: newContent.trim(), writer: 'temp' })
+            body: JSON.stringify({ content: newContent.trim() })  // 작성자 필드 제거
         })
         .then(response => response.ok ? loadComments() : Promise.reject())
         .catch(() => alert('댓글 수정에 실패했습니다.'));
@@ -216,7 +231,7 @@
         return div.innerHTML;
     }
 
-    // 게시글 삭제 - 08장에서 작성
+    // 게시글 삭제
     function deleteBoard() {
         if (confirm('정말 삭제하시겠습니까?')) {
             fetch(`/boards/${boardId}`, { method: 'DELETE' })

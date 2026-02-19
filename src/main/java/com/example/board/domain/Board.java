@@ -28,7 +28,6 @@ public class Board {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    // 댓글 관계 - 09장에서 추가
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
     private List<Comment> comments = new ArrayList<>();
@@ -63,28 +62,28 @@ public class Board {
         this.member = member;
     }
 
-    // 게시글 수정 - 02장에서 작성
+    // 게시글 수정 - 02장
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
     }
 
-    // 조회수 증가 - 02장에서 작성
+    // 조회수 증가 - 02장
     public void increaseViewCount() {
         this.viewCount++;
     }
 
-    // 작성자명 조회 - 02장에서 작성
+    // 작성자명 조회 - 02장
     public String getWriterName() {
         return this.member != null ? this.member.getName() : "익명";
     }
 
-    // 댓글 추가 - 09장에서 추가
+    // 댓글 추가 - 09장/01
     public void addComment(Comment comment) {
         this.comments.add(comment);
     }
 
-    // 댓글 수 조회 - 09장에서 추가
+    // 댓글 수 조회 - 09장/01
     public int getCommentCount() {
         return this.comments.size();
     }
@@ -94,8 +93,18 @@ public class Board {
         this.attachments.add(attachment);
     }
 
-    // 작성자 변경 (회원 탈퇴 시 익명 처리) - 추가
+    // 작성자 변경 (회원 탈퇴 시 익명 처리) - 13장/04
     public void updateMember(Member member) {
         this.member = member;
+    }
+
+    // 작성자 확인 (username) - 추가
+    public boolean isWrittenBy(String username) {
+        return this.member != null && this.member.getUsername().equals(username);
+    }
+
+    // 작성자 확인 (Member ID) - 추가
+    public boolean isWrittenBy(Long memberId) {
+        return this.member != null && this.member.getId().equals(memberId);
     }
 }
