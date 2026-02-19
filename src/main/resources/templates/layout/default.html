@@ -11,6 +11,14 @@
 <body>
     <header th:replace="~{fragments/header :: header}"></header>
 
+    <!-- Flash Message 영역 추가 -->
+    <div class="container mt-3" th:if="${message}">
+        <div class="alert alert-success alert-dismissible fade show">
+            [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
     <main class="container" layout:fragment="content">
         <!-- 페이지별 콘텐츠 -->
     </main>
