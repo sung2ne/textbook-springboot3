@@ -1,7 +1,8 @@
-// 새 파일: src/test/java/com/example/board/service/MemberServiceTest.java
+// 수정: src/test/java/com/example/board/service/MemberServiceTest.java
 package com.example.board.service;
 
 import com.example.board.domain.Member;
+import com.example.board.dto.SignupRequest;
 import com.example.board.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,11 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Transactional  // 테스트 후 롤백
+@Transactional
 class MemberServiceTest {
 
     @Autowired
@@ -21,6 +21,8 @@ class MemberServiceTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    // ===== PART 02에서 작성한 테스트 =====
 
     @Test
     @DisplayName("회원가입 성공")
@@ -70,5 +72,50 @@ class MemberServiceTest {
         )
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("회원을 찾을 수 없습니다.");
+    }
+
+    // ===== Spring Security 회원가입 테스트 (추가) =====
+
+    @Test
+    @DisplayName("Spring Security 회원가입 성공")
+    void signup_success() {
+        // given
+        SignupRequest request = new SignupRequest();
+        request.setUsername("testuser");
+        request.setPassword("Test1234!");
+        request.setPasswordConfirm("Test1234!");
+        request.setName("테스트");
+        request.setEmail("test@example.com");
+
+        // when
+        Long memberId = memberService.signup(request);
+
+        // then
+        Member member = memberRepository.findById(memberId).orElseThrow();
+        assertThat(member.getUsername()).isEqualTo("testuser");
+        assertThat(member.getName()).isEqualTo("테스트");
+    }
+
+    @Test
+    @DisplayName("Spring Security 회원가입 실패 - 중복 아이디")
+    void signup_fail_duplicate_username() {
+        // given
+        SignupRequest request1 = new SignupRequest();
+        request1.setUsername("duplicate");
+        request1.setPassword("Test1234!");
+        request1.setPasswordConfirm("Test1234!");
+        request1.setName("사용자1");
+        memberService.signup(request1);
+
+        SignupRequest request2 = new SignupRequest();
+        request2.setUsername("duplicate");
+        request2.setPassword("Test1234!");
+        request2.setPasswordConfirm("Test1234!");
+        request2.setName("사용자2");
+
+        // when & then
+        assertThatThrownBy(() -> memberService.signup(request2))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("이미 사용 중인 아이디입니다");
     }
 }
