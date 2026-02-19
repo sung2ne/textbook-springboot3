@@ -1,0 +1,71 @@
+<!-- 새 파일: src/main/resources/templates/boards/detail.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title th:text="${board.title}">게시글 상세</title>
+</head>
+<body>
+<main layout:fragment="content">
+    <article>
+        <!-- 제목 -->
+        <h2 th:text="${board.title}">제목</h2>
+
+        <!-- 메타 정보 -->
+        <div class="d-flex justify-content-between text-muted border-bottom pb-2 mb-4">
+            <div>
+                <span th:text="${board.writerName}">작성자</span>
+                <span class="mx-2">|</span>
+                <span th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+                <span th:if="${board.updatedAt}" class="ms-2 text-secondary">
+                    (수정: <span th:text="${#temporals.format(board.updatedAt, 'yyyy-MM-dd HH:mm')}"></span>)
+                </span>
+            </div>
+            <div>
+                조회 <span th:text="${board.viewCount}">0</span>
+            </div>
+        </div>
+
+        <!-- 본문 (줄바꿈 유지) -->
+        <div class="board-content mb-5" style="white-space: pre-wrap;"
+             th:text="${board.content}">
+            내용
+        </div>
+
+        <!-- 버튼 -->
+        <div class="d-flex justify-content-between">
+            <a th:href="@{/boards}" class="btn btn-secondary">목록</a>
+            <div>
+                <a th:href="@{/boards/{id}/edit(id=${board.id})}" class="btn btn-outline-primary">수정</a>
+                <button type="button" class="btn btn-outline-danger"
+                        onclick="deleteBoard()">삭제</button>
+            </div>
+        </div>
+    </article>
+
+    <!-- 댓글 영역 (Part 3 후반부에서 구현) -->
+    <section class="mt-5">
+        <h5>댓글</h5>
+        <div class="text-muted">댓글 기능은 Part 3 후반부에서 구현됩니다.</div>
+    </section>
+</main>
+
+<th:block layout:fragment="script">
+<script th:inline="javascript">
+    function deleteBoard() {
+        if (confirm('정말 삭제하시겠습니까?')) {
+            fetch(`/boards/${[[${board.id}]]}`, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    alert('삭제되었습니다.');
+                    location.href = '/boards';
+                }
+            });
+        }
+    }
+</script>
+</th:block>
+</body>
+</html>

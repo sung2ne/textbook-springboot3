@@ -1,6 +1,7 @@
 // 수정: src/main/java/com/example/board/controller/BoardController.java (메서드 추가)
 package com.example.board.controller;
 
+import com.example.board.dto.BoardDetailResponse;
 import com.example.board.dto.BoardForm;
 import com.example.board.dto.BoardListResponse;
 import com.example.board.service.BoardService;
@@ -40,14 +41,22 @@ public class BoardController {
         return "boards/list";
     }
 
-    // GET /boards/new - 게시글 작성 폼 표시 (추가)
+    // GET /boards/{id} - 게시글 상세 조회 (추가)
+    @GetMapping("/{id}")
+    public String detail(@PathVariable Long id, Model model) {
+        BoardDetailResponse board = boardService.findById(id);
+        model.addAttribute("board", board);
+        return "boards/detail";
+    }
+
+    // GET /boards/new - 게시글 작성 폼 표시 (04장에서 작성)
     @GetMapping("/new")
     public String createForm(Model model) {
         model.addAttribute("boardForm", new BoardForm());
         return "boards/form";
     }
 
-    // POST /boards - 게시글 등록 (추가)
+    // POST /boards - 게시글 등록 (04장에서 작성)
     @PostMapping
     public String create(@Valid @ModelAttribute BoardForm form,
                          BindingResult bindingResult,
@@ -58,18 +67,14 @@ public class BoardController {
             bindingResult.rejectValue("writerName", "NotBlank", "작성자를 입력해주세요.");
         }
 
-        // 검증 오류가 있으면 폼 다시 표시
         if (bindingResult.hasErrors()) {
             return "boards/form";
         }
 
-        // 저장
         Long boardId = boardService.save(form);
 
-        // 성공 메시지
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
 
-        // 상세 페이지로 리다이렉트
         return "redirect:/boards/" + boardId;
     }
 }
