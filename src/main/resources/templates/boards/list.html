@@ -80,8 +80,8 @@
             </li>
 
             <!-- 페이지 번호 -->
-            <th:block th:with="start=${T(Math).max(0, page.number - 2)},
-                              end=${T(Math).min(page.totalPages - 1, page.number + 2)}">
+            <th:block th:with="start=${page.number > 2 ? page.number - 2 : 0},
+                              end=${page.number + 2 < page.totalPages ? page.number + 2 : page.totalPages - 1}">
                 <li class="page-item"
                     th:each="i : ${#numbers.sequence(start, end)}"
                     th:classappend="${i == page.number} ? 'active'">

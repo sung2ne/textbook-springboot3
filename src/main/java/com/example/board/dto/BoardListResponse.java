@@ -14,6 +14,7 @@ public class BoardListResponse {
     private final String writerName;
     private final String writerUsername;
     private final int viewCount;
+    private final int commentCount;
     private final LocalDateTime createdAt;
 
     public BoardListResponse(Board board) {
@@ -23,6 +24,7 @@ public class BoardListResponse {
         this.writerUsername = board.getMember() != null
                 ? board.getMember().getUsername() : null;
         this.viewCount = board.getViewCount();
+        this.commentCount = board.getCommentCount();
         this.createdAt = board.getCreatedAt();
     }
 }
