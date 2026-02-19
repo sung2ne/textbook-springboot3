@@ -3,19 +3,20 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/default}">
 <head>
-    <title>글쓰기</title>
+    <title th:text="${boardForm.id != null} ? '글 수정' : '글쓰기'">글쓰기</title>
 </head>
 <body>
 <main layout:fragment="content">
     <h2 th:text="${boardForm.id != null} ? '글 수정' : '글쓰기'">글쓰기</h2>
 
-    <form th:action="@{/boards}"
+    <!-- 등록: action="/boards", 수정: action="/boards/{id}" -->
+    <form th:action="${boardForm.id != null} ? @{/boards/{id}(id=${boardForm.id})} : @{/boards}"
           th:object="${boardForm}"
           method="post"
           class="mt-4">
 
-        <!-- 작성자 (Part 4에서 로그인 사용자로 대체) -->
-        <div class="mb-3">
+        <!-- 작성자 (등록 시 입력, 수정 시 읽기 전용) -->
+        <div class="mb-3" th:if="${boardForm.id == null}">
             <label for="writerName" class="form-label">작성자</label>
             <input type="text" class="form-control" id="writerName"
                    th:field="*{writerName}"
@@ -24,7 +25,12 @@
                  th:errors="*{writerName}">작성자 오류</div>
         </div>
 
-        <!-- 제목 -->
+        <div class="mb-3" th:if="${boardForm.id != null}">
+            <label class="form-label">작성자</label>
+            <input type="text" class="form-control" th:value="${boardForm.writerName}" disabled>
+        </div>
+
+        <!-- 제목 - 04장에서 작성 -->
         <div class="mb-3">
             <label for="title" class="form-label">제목</label>
             <input type="text" class="form-control" id="title"
@@ -34,7 +40,7 @@
                  th:errors="*{title}">제목 오류</div>
         </div>
 
-        <!-- 내용 -->
+        <!-- 내용 - 04장에서 작성 -->
         <div class="mb-3">
             <label for="content" class="form-label">내용</label>
             <textarea class="form-control" id="content" rows="15"
@@ -47,7 +53,8 @@
         <!-- 버튼 -->
         <div class="d-flex justify-content-between">
             <a th:href="@{/boards}" class="btn btn-secondary">취소</a>
-            <button type="submit" class="btn btn-primary">등록</button>
+            <button type="submit" class="btn btn-primary"
+                    th:text="${boardForm.id != null} ? '수정' : '등록'">등록</button>
         </div>
     </form>
 </main>

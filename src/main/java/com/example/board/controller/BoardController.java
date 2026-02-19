@@ -40,7 +40,7 @@ public class BoardController {
         return "boards/list";
     }
 
-    // GET /boards/{id} - 게시글 상세 조회 (추가)
+    // GET /boards/{id} - 게시글 상세 조회 (05장에서 작성)
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model) {
         BoardDetailResponse board = boardService.findById(id);
@@ -75,5 +75,31 @@ public class BoardController {
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
 
         return "redirect:/boards/" + boardId;
+    }
+
+    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (추가)
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model) {
+        BoardForm form = boardService.getFormById(id);
+        model.addAttribute("boardForm", form);
+        return "boards/form";
+    }
+
+    // POST /boards/{id} - 게시글 수정 처리 (추가)
+    @PostMapping("/{id}")
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute BoardForm form,
+                         BindingResult bindingResult,
+                         RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            return "boards/form";
+        }
+
+        boardService.update(id, form);
+
+        redirectAttributes.addFlashAttribute("message", "게시글이 수정되었습니다.");
+
+        return "redirect:/boards/" + id;
     }
 }

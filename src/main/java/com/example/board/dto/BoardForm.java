@@ -1,5 +1,6 @@
 package com.example.board.dto;
 
+import com.example.board.domain.Board;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -22,5 +23,15 @@ public class BoardForm {
 
     // 수정 시 disabled로 전송 안됨 → @NotBlank 대신 Controller에서 검증
     @Size(max = 50, message = "작성자명은 50자 이내로 입력해주세요.")
-    private String writerName;  // Entity 필드명과 일치
+    private String writerName;
+
+    // 엔티티 → DTO 변환 (추가)
+    public static BoardForm from(Board board) {
+        BoardForm form = new BoardForm();
+        form.setId(board.getId());
+        form.setTitle(board.getTitle());
+        form.setContent(board.getContent());
+        form.setWriterName(board.getWriterName());
+        return form;
+    }
 }

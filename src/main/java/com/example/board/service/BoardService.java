@@ -2,6 +2,7 @@ package com.example.board.service;
 
 import com.example.board.domain.Board;
 import com.example.board.domain.Member;
+import com.example.board.dto.BoardDetailResponse;
 import com.example.board.dto.BoardForm;
 import com.example.board.dto.BoardListResponse;
 import com.example.board.repository.BoardRepository;
@@ -20,10 +21,9 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
 
-    // 게시글 저장
+    // 게시글 저장 - 04장에서 작성
     @Transactional
     public Long save(BoardForm form) {
-        // 임시: 작성자명으로 회원 조회 또는 생성
         Member member = memberRepository.findByName(form.getWriterName())
                 .orElseGet(() -> memberRepository.save(
                         Member.builder()
@@ -33,15 +33,49 @@ public class BoardService {
                                 .build()
                 ));
 
-        // DTO → Entity 변환
         Board board = Board.builder()
                 .title(form.getTitle())
                 .content(form.getContent())
                 .member(member)
                 .build();
 
-        // 저장
         return boardRepository.save(board).getId();
+    }
+
+    // 상세 조회 (조회수 증가) - 05장에서 작성
+    @Transactional
+    public BoardDetailResponse findById(Long id) {
+        Board board = boardRepository.findByIdWithMember(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+
+        board.increaseViewCount();
+
+        return new BoardDetailResponse(board);
+    }
+
+    // 상세 조회 (조회수 증가 없이 - 수정 폼용) - 05장에서 작성
+    public BoardDetailResponse findByIdForEdit(Long id) {
+        Board board = boardRepository.findByIdWithMember(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+
+        return new BoardDetailResponse(board);
+    }
+
+    // 수정용 폼 조회 - 추가
+    public BoardForm getFormById(Long id) {
+        Board board = boardRepository.findByIdWithMember(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+        return BoardForm.from(board);
+    }
+
+    // 게시글 수정 - 추가
+    @Transactional
+    public void update(Long id, BoardForm form) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+
+        board.update(form.getTitle(), form.getContent());
+        // 변경 감지(Dirty Checking)로 자동 UPDATE
     }
 
     // 목록 조회 (페이징) - 03장에서 작성
