@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -77,7 +78,7 @@ public class BoardController {
         return "redirect:/boards/" + boardId;
     }
 
-    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (추가)
+    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (06장에서 작성)
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         BoardForm form = boardService.getFormById(id);
@@ -85,7 +86,7 @@ public class BoardController {
         return "boards/form";
     }
 
-    // POST /boards/{id} - 게시글 수정 처리 (추가)
+    // POST /boards/{id} - 게시글 수정 처리 (06장에서 작성)
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute BoardForm form,
@@ -101,5 +102,13 @@ public class BoardController {
         redirectAttributes.addFlashAttribute("message", "게시글이 수정되었습니다.");
 
         return "redirect:/boards/" + id;
+    }
+
+    // DELETE /boards/{id} - 게시글 삭제 (추가)
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        boardService.delete(id);
+        return ResponseEntity.ok().build();
     }
 }
