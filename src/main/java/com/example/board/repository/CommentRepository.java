@@ -15,6 +15,9 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     void deleteByBoardId(Long boardId);
 
-    // 회원별 댓글 수 조회
+    // 회원별 댓글 수 조회 - 12장/03
     long countByMemberId(Long memberId);
+
+    // 회원별 댓글 목록 조회 - 추가
+    List<Comment> findByMemberId(Long memberId);
 }

@@ -1,4 +1,4 @@
-// 수정: src/main/java/com/example/board/domain/Board.java (필드 및 메서드 추가)
+// 수정: src/main/java/com/example/board/domain/Board.java
 package com.example.board.domain;
 
 import jakarta.persistence.*;
@@ -33,7 +33,7 @@ public class Board {
     @OrderBy("createdAt DESC")
     private List<Comment> comments = new ArrayList<>();
 
-    // 첨부파일 관계 - 추가
+    // 첨부파일 관계 - 10장에서 추가
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attachment> attachments = new ArrayList<>();
 
@@ -89,8 +89,13 @@ public class Board {
         return this.comments.size();
     }
 
-    // 첨부파일 추가 - 추가
+    // 첨부파일 추가 - 10장에서 추가
     public void addAttachment(Attachment attachment) {
         this.attachments.add(attachment);
+    }
+
+    // 작성자 변경 (회원 탈퇴 시 익명 처리) - 추가
+    public void updateMember(Member member) {
+        this.member = member;
     }
 }

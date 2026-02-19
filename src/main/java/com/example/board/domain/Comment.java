@@ -1,4 +1,4 @@
-// 새 파일: src/main/java/com/example/board/domain/Comment.java
+// 수정: src/main/java/com/example/board/domain/Comment.java
 package com.example.board.domain;
 
 import jakarta.persistence.*;
@@ -46,8 +46,13 @@ public class Comment {
         return this.member != null ? this.member.getName() : "익명";
     }
 
-    // 댓글 수정
+    // 댓글 수정 - 09장/01
     public void update(String content) {
         this.content = content;
+    }
+
+    // 작성자 변경 (회원 탈퇴 시 익명 처리) - 추가
+    public void updateMember(Member member) {
+        this.member = member;
     }
 }

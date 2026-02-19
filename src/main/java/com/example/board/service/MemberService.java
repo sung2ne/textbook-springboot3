@@ -4,6 +4,9 @@ package com.example.board.service;
 import com.example.board.domain.Member;
 import com.example.board.domain.Role;
 import com.example.board.dto.MemberListResponse;
+import com.example.board.dto.MemberDeleteRequest;
+import com.example.board.dto.PasswordChangeRequest;
+import com.example.board.dto.ProfileEditRequest;
 import com.example.board.dto.SignupRequest;
 import com.example.board.repository.BoardRepository;
 import com.example.board.repository.CommentRepository;
@@ -168,11 +171,62 @@ public class MemberService {
             throw new IllegalStateException("관리자 계정은 삭제할 수 없습니다.");
         }
 
-        // 활성 게시글이 있으면 삭제 불가 (선택 사항)
-        if (boardRepository.countByMemberId(id) > 0) {
-            throw new IllegalStateException("작성한 게시글이 있는 회원은 삭제할 수 없습니다.");
+        memberRepository.delete(member);
+    }
+
+    // 프로필 수정 - 13장/02
+    @Transactional
+    public void updateProfile(Long memberId, ProfileEditRequest request) {
+        Member member = findById(memberId);
+
+        // 이메일 중복 체크 (본인 제외)
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            memberRepository.findByEmail(request.getEmail())
+                    .filter(m -> !m.getId().equals(memberId))
+                    .ifPresent(m -> {
+                        throw new IllegalArgumentException("이미 사용 중인 이메일입니다");
+                    });
         }
 
+        member.updateInfo(request.getName(), request.getEmail());
+    }
+
+    // 비밀번호 변경 - 13장/03
+    @Transactional
+    public void changePassword(Long memberId, PasswordChangeRequest request) {
+        Member member = findById(memberId);
+
+        // 현재 비밀번호 확인
+        if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 올바르지 않습니다");
+        }
+
+        // 새 비밀번호 일치 확인
+        if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+            throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다");
+        }
+
+        member.changePassword(passwordEncoder.encode(request.getNewPassword()));
+    }
+
+    // 회원 탈퇴 - 추가
+    @Transactional
+    public void deleteMember(Long memberId, MemberDeleteRequest request) {
+        Member member = findById(memberId);
+
+        // 비밀번호 확인
+        if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 올바르지 않습니다");
+        }
+
+        // 작성한 게시글과 댓글의 작성자를 null로 변경 (익명 처리)
+        boardRepository.findByMemberId(memberId)
+                .forEach(board -> board.updateMember(null));
+
+        commentRepository.findByMemberId(memberId)
+                .forEach(comment -> comment.updateMember(null));
+
+        // 회원 삭제
         memberRepository.delete(member);
     }
 }

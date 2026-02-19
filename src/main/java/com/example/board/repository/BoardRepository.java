@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
@@ -26,6 +27,9 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("SELECT b FROM Board b LEFT JOIN FETCH b.member WHERE b.id = :id")
     Optional<Board> findByIdWithMember(@Param("id") Long id);
 
-    // 회원별 게시글 수 조회
+    // 회원별 게시글 수 조회 - 12장/03
     long countByMemberId(Long memberId);
+
+    // 회원별 게시글 목록 조회 - 추가
+    List<Board> findByMemberId(Long memberId);
 }

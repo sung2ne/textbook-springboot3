@@ -1,0 +1,59 @@
+<!-- 새 파일: src/main/resources/templates/members/member-delete.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+
+<head>
+    <title>회원 탈퇴</title>
+</head>
+
+<body>
+<main layout:fragment="content">
+    <h2 class="text-danger mb-4">회원 탈퇴</h2>
+
+    <div class="alert alert-warning">
+        <strong>주의사항</strong>
+        <ul class="mb-0">
+            <li>탈퇴 후 계정 복구가 불가능합니다.</li>
+            <li>작성한 게시글과 댓글은 삭제되지 않고 익명 처리됩니다.</li>
+            <li>탈퇴 후 동일한 아이디로 재가입할 수 없습니다.</li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form th:action="@{/members/profile/delete}" method="post" th:object="${memberDeleteRequest}"
+                          onsubmit="return confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control" id="password" th:field="*{password}"
+                                   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}"
+                                 th:errors="*{password}">비밀번호 오류</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">탈퇴 사유 (선택)</label>
+                            <textarea class="form-control" id="reason" th:field="*{reason}" rows="3"
+                                      placeholder="탈퇴 사유를 입력해주세요 (선택)"></textarea>
+                        </div>
+
+                        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+                            <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">전역 오류</p>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">탈퇴하기</button>
+                            <a th:href="@{/members/profile}" class="btn btn-secondary">취소</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
