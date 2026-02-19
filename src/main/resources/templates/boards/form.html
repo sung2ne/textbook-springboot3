@@ -1,0 +1,54 @@
+<!-- 수정: src/main/resources/templates/boards/form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>글 작성</title>
+    <!-- 02번의 <style> 태그 제거 - Bootstrap CSS 활용 -->
+</head>
+<body>
+    <main layout:fragment="content">
+        <h1 class="mb-4">글 작성</h1>
+
+        <form th:action="@{/boards}" th:object="${boardForm}" method="post">
+            <div class="mb-3">
+                <label for="title" class="form-label">제목</label>
+                <!-- 오류 시 is-invalid 클래스 추가 -->
+                <input type="text"
+                       class="form-control"
+                       id="title"
+                       th:field="*{title}"
+                       th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'">
+                <!-- Bootstrap의 invalid-feedback 사용 -->
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}"
+                     th:errors="*{title}">에러 메시지</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="content" class="form-label">내용</label>
+                <textarea class="form-control"
+                          id="content"
+                          rows="10"
+                          th:field="*{content}"
+                          th:classappend="${#fields.hasErrors('content')} ? 'is-invalid'"></textarea>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('content')}"
+                     th:errors="*{content}">에러 메시지</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="writer" class="form-label">작성자</label>
+                <input type="text" class="form-control" id="writer" th:field="*{writer}"
+                       th:classappend="${#fields.hasErrors('writer')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('writer')}"
+                     th:errors="*{writer}">에러 메시지</div>
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">저장</button>
+                <a th:href="@{/boards}" class="btn btn-secondary">취소</a>
+            </div>
+        </form>
+    </main>
+</body>
+</html>

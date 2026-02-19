@@ -1,0 +1,21 @@
+// 수정: src/main/java/com/example/board/controller/BoardController.java (create() 메서드)
+@PostMapping
+public String create(@Valid @ModelAttribute("boardForm") BoardForm form,
+                     BindingResult bindingResult,
+                     RedirectAttributes redirectAttributes) {
+
+    // 검증 오류가 있으면 폼으로 다시 이동
+    if (bindingResult.hasErrors()) {
+        return "boards/form";
+    }
+
+    // 입력값 확인 (디버깅용)
+    System.out.println("제목: " + form.getTitle());
+    System.out.println("내용: " + form.getContent());
+    System.out.println("작성자: " + form.getWriter());
+
+    // TODO: 실제 저장 로직은 나중에 추가
+
+    redirectAttributes.addFlashAttribute("message", "저장되었습니다");
+    return "redirect:/boards";
+}
