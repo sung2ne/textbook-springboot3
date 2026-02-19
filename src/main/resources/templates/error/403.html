@@ -1,0 +1,37 @@
+<!-- 새 파일: src/main/resources/templates/error/403.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+
+<head>
+    <title>접근 거부</title>
+</head>
+
+<body>
+<main layout:fragment="content">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow text-center py-5">
+                <div class="card-body">
+                    <h1 class="display-1 fw-bold text-danger">403</h1>
+                    <h2 class="h4 text-secondary mb-3">접근이 거부되었습니다</h2>
+                    <p class="text-muted mb-4" th:text="${errorMessage}">
+                        해당 페이지에 접근할 권한이 없습니다
+                    </p>
+
+                    <div>
+                        <a href="javascript:history.back()" class="btn btn-secondary me-2">
+                            이전 페이지
+                        </a>
+                        <a th:href="@{/}" class="btn btn-primary">
+                            홈으로
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

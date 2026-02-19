@@ -1,13 +1,9 @@
+# 수정: src/main/resources/application.yml
 spring:
-  profiles:
-    active: dev
+  # 기존 설정...
 
-  application:
-    name: board
-
-  thymeleaf:
-    cache: false
-
-logging:
-  level:
-    com.example.board: DEBUG
+server:
+  error:
+    whitelabel:
+      enabled: false  # Whitelabel 에러 페이지 비활성화
+    path: /error      # 에러 처리 경로

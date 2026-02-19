@@ -17,6 +17,8 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 import javax.sql.DataSource;
 
 import com.example.board.security.CustomUserDetailsService;
+import com.example.board.security.CustomAccessDeniedHandler;
+import com.example.board.security.CustomAuthenticationEntryPoint;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,8 +29,9 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final DataSource dataSource;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
-    // 영구 토큰 저장소 - 추가
     @Bean
     public PersistentTokenRepository persistentTokenRepository() {
         JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
@@ -41,17 +44,11 @@ public class SecurityConfig {
         http
             // 요청 인가 설정
             .authorizeHttpRequests(auth -> auth
-                // 정적 리소스는 모두 허용
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                // 글쓰기, 수정은 인증 필요 (구체적 경로를 먼저 선언)
                 .requestMatchers("/boards/new", "/boards/{id}/edit").authenticated()
-                // 홈, 게시판 목록, 상세는 모두 허용
                 .requestMatchers("/", "/boards", "/boards/{id}").permitAll()
-                // 로그인, 회원가입은 모두 허용
                 .requestMatchers("/login", "/members/signup").permitAll()
-                // H2 콘솔은 개발용으로 허용
                 .requestMatchers("/h2-console/**").permitAll()
-                // 나머지 요청은 인증 필요
                 .anyRequest().authenticated()
             )
             // 폼 로그인 설정
@@ -60,7 +57,18 @@ public class SecurityConfig {
                 .loginProcessingUrl("/login")
                 .usernameParameter("username")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/boards", true)
+                .successHandler((request, response, authentication) -> {
+                    // 저장된 URL 확인
+                    String redirectUrl = (String) request.getSession()
+                            .getAttribute("REDIRECT_URL");
+
+                    if (redirectUrl != null) {
+                        request.getSession().removeAttribute("REDIRECT_URL");
+                        response.sendRedirect(redirectUrl);
+                    } else {
+                        response.sendRedirect("/boards");
+                    }
+                })
                 .failureUrl("/login?error")
                 .permitAll()
             )
@@ -72,23 +80,24 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID", "remember-me")
                 .permitAll()
             )
-            // 영구 토큰 방식 Remember-Me - 변경
+            // Remember-Me 설정
             .rememberMe(remember -> remember
                 .key("uniqueAndSecretKey")
-                .tokenValiditySeconds(86400 * 30)  // 30일로 연장
-                .tokenRepository(persistentTokenRepository())  // DB 저장소 사용
+                .tokenValiditySeconds(86400 * 30)
+                .tokenRepository(persistentTokenRepository())
                 .userDetailsService(userDetailsService)
                 .rememberMeParameter("remember-me")
+            )
+            // 예외 처리 - 커스텀 핸들러 사용
+            .exceptionHandling(exception -> exception
+                .accessDeniedHandler(accessDeniedHandler)
+                .authenticationEntryPoint(authenticationEntryPoint)
             );
 
-        // H2 콘솔용 설정 (개발 환경)
+        // H2 콘솔용 설정
         http
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
-            )
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin())
-            );
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }

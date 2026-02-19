@@ -1,0 +1,37 @@
+<!-- 새 파일: src/main/resources/templates/error/404.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+
+<head>
+    <title>페이지를 찾을 수 없음</title>
+</head>
+
+<body>
+<main layout:fragment="content">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow text-center py-5">
+                <div class="card-body">
+                    <h1 class="display-1 fw-bold text-info">404</h1>
+                    <h2 class="h4 text-secondary mb-3">페이지를 찾을 수 없습니다</h2>
+                    <p class="text-muted mb-4">
+                        요청하신 페이지가 존재하지 않거나 삭제되었습니다
+                    </p>
+
+                    <div>
+                        <a href="javascript:history.back()" class="btn btn-secondary me-2">
+                            이전 페이지
+                        </a>
+                        <a th:href="@{/}" class="btn btn-primary">
+                            홈으로
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
