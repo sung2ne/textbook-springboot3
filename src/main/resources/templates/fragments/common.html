@@ -1,0 +1,74 @@
+<!-- 새 파일: src/main/resources/templates/fragments/common.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- 1. Alert Fragment (파라미터: type, message) -->
+<div th:fragment="alert (type, message)"
+     th:class="'alert alert-' + ${type} + ' alert-dismissible fade show'"
+     role="alert">
+    <span th:text="${message}">메시지</span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+<!-- 2. Card Fragment (파라미터: title, content) -->
+<div th:fragment="card (title, content)" class="card mb-3">
+    <div class="card-header">
+        <h5 th:text="${title}">제목</h5>
+    </div>
+    <div class="card-body">
+        <p th:text="${content}">내용</p>
+    </div>
+</div>
+
+<!-- 3. Badge Fragment (파라미터: text, color) -->
+<span th:fragment="badge (text, color)"
+      th:class="'badge bg-' + ${color}"
+      th:text="${text}">뱃지</span>
+
+<!-- 4. Pagination Fragment (파라미터: currentPage, totalPages) -->
+<nav th:fragment="pagination (currentPage, totalPages)">
+    <ul class="pagination justify-content-center">
+        <!-- 이전 버튼 -->
+        <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+            <a class="page-link" th:href="@{/boards(page=${currentPage - 1})}">이전</a>
+        </li>
+
+        <!-- 페이지 번호 -->
+        <li th:each="page : ${#numbers.sequence(1, totalPages)}"
+            class="page-item"
+            th:classappend="${page == currentPage} ? 'active'">
+            <a class="page-link" th:href="@{/boards(page=${page})}"
+               th:text="${page}">1</a>
+        </li>
+
+        <!-- 다음 버튼 -->
+        <li class="page-item"
+            th:classappend="${currentPage == totalPages} ? 'disabled'">
+            <a class="page-link" th:href="@{/boards(page=${currentPage + 1})}">다음</a>
+        </li>
+    </ul>
+</nav>
+
+<!-- 5. Modal Fragment (파라미터: id, title, content) -->
+<div th:fragment="modal (id, title, content)"
+     class="modal fade"
+     th:id="${id}"
+     tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" th:text="${title}">제목</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p th:text="${content}">내용</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                <button type="button" class="btn btn-primary">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>
