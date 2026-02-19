@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>조건문 데모</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .code { background: #f5f5f5; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .result { background: #e7f3ff; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-size: 0.9em; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+        .test-links { margin: 20px 0; padding: 15px; background: #fff3cd; border-radius: 4px; }
+        .test-links a { display: inline-block; margin: 5px; padding: 8px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Thymeleaf 조건문</h1>
+
+    <!-- 현재 상태 표시 -->
+    <div class="section">
+        <h2>📊 현재 상태</h2>
+        <p><strong>사용자명:</strong> <span th:text="${username} ?: '(없음)'">없음</span></p>
+        <p><strong>역할:</strong> <span th:text="${role}">GUEST</span></p>
+        <p><strong>점수:</strong> <span th:text="${score}">0</span>점</p>
+        <p><strong>로그인 여부:</strong> <span th:text="${isLoggedIn}">false</span></p>
+    </div>
+
+    <!-- 테스트 링크 -->
+    <div class="test-links">
+        <h3>🧪 테스트 링크 (클릭해서 다양한 조건 확인)</h3>
+        <a href="/conditional/demo">초기화</a>
+        <a href="/conditional/demo?username=홍길동&role=USER&score=75">일반 사용자 (75점)</a>
+        <a href="/conditional/demo?username=관리자&role=ADMIN&score=95">관리자 (95점)</a>
+        <a href="/conditional/demo?role=GUEST&score=50">게스트 (50점)</a>
+    </div>
+
+    <!-- 1. th:if / th:unless -->
+    <div class="section">
+        <h2>1. th:if / th:unless - 단순 조건</h2>
+
+        <p class="code">코드: &lt;p th:if="${username != null}"&gt;환영합니다, [[${username}]]님!&lt;/p&gt;</p>
+        <div class="result">
+            <p th:if="${username != null}">환영합니다, [[${username}]]님!</p>
+            <p th:unless="${username != null}" style="color: #999;">로그인이 필요합니다.</p>
+        </div>
+
+        <p class="code">코드: &lt;div th:if="${score >= 80}"&gt;우수 등급&lt;/div&gt;</p>
+        <div class="result">
+            <div th:if="${score >= 80}">
+                <span class="badge badge-success">✅ 우수 등급 (80점 이상)</span>
+            </div>
+            <div th:unless="${score >= 80}">
+                <span class="badge badge-warning">⚠️ 일반 등급 (80점 미만)</span>
+            </div>
+        </div>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>th:unless</code>는 <code>th:if</code>의 반대 조건입니다.
+        </p>
+    </div>
+
+    <!-- 2. th:switch / th:case -->
+    <div class="section">
+        <h2>2. th:switch / th:case - 다중 조건 분기</h2>
+
+        <p class="code">코드: &lt;div th:switch="${role}"&gt;</p>
+        <div class="result">
+            <div th:switch="${role}">
+                <div th:case="'ADMIN'">
+                    <span class="badge badge-danger">👑 관리자 권한</span>
+                    <p>모든 기능에 접근할 수 있습니다.</p>
+                </div>
+                <div th:case="'USER'">
+                    <span class="badge badge-success">👤 일반 사용자</span>
+                    <p>일반 사용자 기능을 이용할 수 있습니다.</p>
+                </div>
+                <div th:case="*">
+                    <span class="badge badge-info">👥 게스트</span>
+                    <p>제한된 기능만 이용할 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>th:case="*"</code>는 default 케이스입니다 (어디에도 해당하지 않을 때).
+        </p>
+    </div>
+
+    <!-- 3. 복합 조건 -->
+    <div class="section">
+        <h2>3. 복합 조건 - 여러 조건 조합</h2>
+
+        <p class="code">코드: &lt;div th:if="${username != null and score >= 80}"&gt;</p>
+        <div class="result">
+            <div th:if="${username != null and score >= 80}">
+                <span class="badge badge-success">🌟 우수 회원</span>
+                <p>[[${username}]]님은 우수 회원입니다!</p>
+            </div>
+            <div th:if="${username != null and score < 80}">
+                <span class="badge badge-warning">📈 일반 회원</span>
+                <p>[[${username}]]님, 조금만 더 노력하세요!</p>
+            </div>
+            <div th:if="${username == null}">
+                <span class="badge badge-info">🔒 비회원</span>
+                <p>로그인 후 이용해주세요.</p>
+            </div>
+        </div>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>and</code>, <code>or</code>, <code>not</code> 연산자를 사용할 수 있습니다.
+        </p>
+    </div>
+
+    <!-- 4. 등급 판정 (실전 예제) -->
+    <div class="section">
+        <h2>4. 등급 판정 - 실전 활용 예제</h2>
+
+        <p class="code">점수에 따른 등급 자동 판정</p>
+        <div class="result">
+            <h3>점수: <span th:text="${score}">0</span>점</h3>
+            <div th:if="${score >= 90}">
+                <span class="badge badge-success" style="font-size: 1.2em;">🏆 A등급 - 최우수</span>
+            </div>
+            <div th:if="${score >= 80 and score < 90}">
+                <span class="badge badge-success">⭐ B등급 - 우수</span>
+            </div>
+            <div th:if="${score >= 70 and score < 80}">
+                <span class="badge badge-info">📘 C등급 - 보통</span>
+            </div>
+            <div th:if="${score >= 60 and score < 70}">
+                <span class="badge badge-warning">📙 D등급 - 미흡</span>
+            </div>
+            <div th:if="${score < 60}">
+                <span class="badge badge-danger">📕 F등급 - 불합격</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. 조건식 정리 -->
+    <div class="section">
+        <h2>5. 조건식 작성 방법</h2>
+        <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8f9fa;">
+                <tr>
+                    <th>비교 연산</th>
+                    <th>Thymeleaf 문법</th>
+                    <th>예시</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>같음</td>
+                    <td><code>==</code> 또는 <code>eq</code></td>
+                    <td><code>th:if="${age == 20}"</code></td>
+                </tr>
+                <tr>
+                    <td>다름</td>
+                    <td><code>!=</code> 또는 <code>ne</code></td>
+                    <td><code>th:if="${age != 20}"</code></td>
+                </tr>
+                <tr>
+                    <td>크다</td>
+                    <td><code>&gt;</code> 또는 <code>gt</code></td>
+                    <td><code>th:if="${age &gt; 20}"</code></td>
+                </tr>
+                <tr>
+                    <td>작다</td>
+                    <td><code>&lt;</code> 또는 <code>lt</code></td>
+                    <td><code>th:if="${age &lt; 20}"</code></td>
+                </tr>
+                <tr>
+                    <td>이상</td>
+                    <td><code>&gt;=</code> 또는 <code>ge</code></td>
+                    <td><code>th:if="${age &gt;= 20}"</code></td>
+                </tr>
+                <tr>
+                    <td>이하</td>
+                    <td><code>&lt;=</code> 또는 <code>le</code></td>
+                    <td><code>th:if="${age &lt;= 20}"</code></td>
+                </tr>
+                <tr>
+                    <td>null 체크</td>
+                    <td><code>!= null</code></td>
+                    <td><code>th:if="${user != null}"</code></td>
+                </tr>
+                <tr>
+                    <td>AND 조건</td>
+                    <td><code>and</code></td>
+                    <td><code>th:if="${age > 20 and age < 30}"</code></td>
+                </tr>
+                <tr>
+                    <td>OR 조건</td>
+                    <td><code>or</code></td>
+                    <td><code>th:if="${role == 'ADMIN' or role == 'MANAGER'}"</code></td>
+                </tr>
+                <tr>
+                    <td>NOT 조건</td>
+                    <td><code>not</code> 또는 <code>!</code></td>
+                    <td><code>th:if="${!isActive}"</code></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; background: #e7f3ff; border-left: 4px solid #2196F3;">
+        <h3>💡 핵심 정리</h3>
+        <ul>
+            <li><strong>th:if</strong> - 조건이 true일 때만 요소를 렌더링</li>
+            <li><strong>th:unless</strong> - th:if의 반대 (조건이 false일 때 렌더링)</li>
+            <li><strong>th:switch/case</strong> - 여러 케이스 중 하나를 선택 (Java의 switch문과 유사)</li>
+            <li><strong>조건식</strong> - ==, !=, &gt;, &lt;, and, or 등 다양한 연산자 사용 가능</li>
+            <li><strong>null 안전</strong> - null 체크를 통해 안전한 조건 처리</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+            홈으로 돌아가기
+        </a>
+    </div>
+</body>
+</html>

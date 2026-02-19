@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>텍스트 출력 데모</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .code { background: #f5f5f5; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; font-family: monospace; }
+        .result { background: #e7f3ff; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .warning { background: #fff3cd; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 4px solid #ffc107; }
+        .danger { background: #f8d7da; padding: 15px; margin: 10px 0; border-radius: 4px; border-left: 4px solid #dc3545; }
+        .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .compare > div { padding: 15px; border-radius: 4px; }
+        .compare .safe { background: #d4edda; }
+        .compare .unsafe { background: #f8d7da; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+        .test-links { margin: 20px 0; padding: 15px; background: #e7f3ff; border-radius: 4px; }
+        .test-links a { display: inline-block; margin: 5px; padding: 8px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Thymeleaf 텍스트 출력</h1>
+
+    <!-- 테스트 링크 -->
+    <div class="test-links">
+        <h3>🧪 테스트 링크</h3>
+        <a href="/text/demo">기본값</a>
+        <a href="/text/demo?name=김철수">이름 변경</a>
+        <a href="/text/demo?name=<script>alert('XSS')</script>">XSS 테스트</a>
+    </div>
+
+    <!-- 1. th:text 기본 사용법 -->
+    <div class="section">
+        <h2>1. th:text - 기본 텍스트 출력</h2>
+
+        <p class="code">코드: &lt;p th:text="${name}"&gt;기본값&lt;/p&gt;</p>
+        <div class="result">
+            <p>사용자 이름: <strong th:text="${name}">기본값</strong></p>
+            <p th:text="${greeting}">인사말</p>
+            <p th:text="${description}">설명</p>
+        </div>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>th:text</code>는 태그 내부의 기본값을 대체합니다.
+        </p>
+    </div>
+
+    <!-- 2. th:text vs th:utext 비교 -->
+    <div class="section">
+        <h2>2. th:text vs th:utext - HTML 이스케이프 비교</h2>
+
+        <p class="code">원본 데이터: &lt;strong&gt;중요한&lt;/strong&gt; 공지사항입니다.</p>
+
+        <div class="compare">
+            <div class="safe">
+                <h4>✅ th:text (이스케이프 O - 안전)</h4>
+                <p th:text="${htmlContent}">내용</p>
+                <p style="font-size: 0.85em; color: #155724;">HTML 태그가 그대로 텍스트로 표시됨</p>
+            </div>
+            <div class="unsafe">
+                <h4>⚠️ th:utext (이스케이프 X - 주의)</h4>
+                <p th:utext="${htmlContent}">내용</p>
+                <p style="font-size: 0.85em; color: #721c24;">HTML 태그가 렌더링됨</p>
+            </div>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 주의:</strong> <code>th:utext</code>는 신뢰할 수 있는 데이터에만 사용하세요.
+            사용자 입력을 그대로 출력하면 XSS 공격에 취약해집니다.
+        </div>
+    </div>
+
+    <!-- 3. XSS 공격 방지 시연 -->
+    <div class="section">
+        <h2>3. XSS 공격 방지 - th:text의 보안 효과</h2>
+
+        <p class="code">악성 스크립트: &lt;script&gt;alert('XSS 공격!')&lt;/script&gt;</p>
+
+        <div class="compare">
+            <div class="safe">
+                <h4>✅ th:text 사용 (안전)</h4>
+                <p th:text="${scriptTag}">스크립트</p>
+                <p style="font-size: 0.85em; color: #155724;">스크립트가 실행되지 않고 텍스트로 표시됨</p>
+            </div>
+            <div class="unsafe">
+                <h4>❌ th:utext 사용 (위험)</h4>
+                <p><!-- 보안상 th:utext로 스크립트를 출력하지 않음 --></p>
+                <p style="font-size: 0.85em; color: #721c24;">실제로는 스크립트가 실행될 수 있음 (위험!)</p>
+            </div>
+        </div>
+
+        <div class="danger">
+            <strong>🚨 보안 규칙:</strong> 사용자 입력 데이터는 항상 <code>th:text</code>를 사용하세요!
+        </div>
+    </div>
+
+    <!-- 4. 인라인 표현식 -->
+    <div class="section">
+        <h2>4. 인라인 표현식 - 텍스트 중간에 값 삽입</h2>
+
+        <p class="code">코드: &lt;p&gt;안녕하세요, [안녕하세요, ${name}님!|"&gt;&lt;/p&gt;</p>
+        <div class="result">
+            <p th:text="|안녕하세요, ${name}님! 가격은 ${price}원입니다.|">메시지</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>방식</th>
+                    <th>문법</th>
+                    <th>결과</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>리터럴 치환 (권장)</td>
+                    <td><code>|Hello, ${name}!|</code></td>
+                    <td>Hello, 홍길동!</td>
+                </tr>
+                <tr>
+                    <td>+ 연결</td>
+                    <td><code>'Hello, ' + ${name} + '!'</code></td>
+                    <td>Hello, 홍길동!</td>
+                </tr>
+                <tr>
+                    <td>인라인</td>
+                    <td th:inline="none"><code>Hello, [[${name}](${name}]]님! 오늘도 좋은 하루 되세요.&lt;/p&gt;</p>
+        <div class="result">
+            <p>안녕하세요, [[${name}]]님! 오늘도 좋은 하루 되세요.</p>
+            <p>현재 가격: [[${price}]]원 (배송비 별도)</p>
+        </div>
+
+        <p class="code">코드: &lt;span&gt;오늘 날짜: [[${#temporals.format(currentTime, 'yyyy-MM-dd HH:mm')}]]&lt;/span&gt;</p>
+        <div class="result">
+            <p>현재 시간: [[${#temporals.format(currentTime, 'yyyy-MM-dd HH:mm')}]]</p>
+        </div>
+
+        <p style="color: #666; font-size: 0.9em;" th:inline="none">
+            💡 <code>[[${...}]]</code>는 th:text와 동일하게 이스케이프됩니다.
+        </p>
+    </div>
+
+    <!-- 5. 기본값 처리 (Elvis 연산자) -->
+    <div class="section">
+        <h2>5. 기본값 처리 - Elvis 연산자</h2>
+
+        <p class="code">코드: &lt;p th:text="${nickname} ?: '닉네임 없음'"&gt;&lt;/p&gt;</p>
+        <div class="result">
+            <p>닉네임: <span th:text="${nickname} ?: '닉네임 없음'">기본값</span></p>
+            <p>사용자명: <span th:text="${name} ?: '이름 없음'">기본값</span></p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>표현식</th>
+                    <th>설명</th>
+                    <th>예시</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>${var} ?: 'default'</code></td>
+                    <td>var가 null이면 'default' 출력</td>
+                    <td><code>${name} ?: '익명'</code></td>
+                </tr>
+                <tr>
+                    <td><code>${var} ?: ${other}</code></td>
+                    <td>var가 null이면 other 출력</td>
+                    <td><code>${nickname} ?: ${name}</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 Elvis 연산자(<code>?:</code>)로 null 값을 우아하게 처리할 수 있습니다.
+        </p>
+    </div>
+
+    <!-- 6. 문자열 연결 -->
+    <div class="section">
+        <h2>6. 문자열 연결 - 리터럴 치환</h2>
+
+        <p class="code">코드: &lt;p th:text=")!</code></td>
+                    <td>Hello, 홍길동!</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>|...|</code> 리터럴 치환이 가장 읽기 쉽습니다.
+        </p>
+    </div>
+
+    <!-- 핵심 정리 -->
+    <div style="margin-top: 40px; padding: 20px; background: #e7f3ff; border-left: 4px solid #2196F3;">
+        <h3>💡 핵심 정리</h3>
+        <ul>
+            <li><strong>th:text</strong> - HTML 이스케이프 적용, 안전한 텍스트 출력 (기본 선택)</li>
+            <li><strong>th:utext</strong> - HTML 렌더링, 신뢰할 수 있는 데이터에만 사용</li>
+            <li th:inline="none"><strong>[[${...}]]</strong> - 인라인 표현식, 텍스트 중간에 값 삽입</li>
+            <li><strong>Elvis 연산자</strong> - <code>?:</code>로 null 기본값 처리</li>
+            <li><strong>리터럴 치환</strong> - <code>|...|</code>로 문자열 조합</li>
+            <li><strong>보안</strong> - 사용자 입력은 반드시 <code>th:text</code> 사용 (XSS 방지)</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+            홈으로 돌아가기
+        </a>
+    </div>
+</body>
+</html>
