@@ -28,9 +28,14 @@ public class Board {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    // 댓글 관계 - 09장에서 추가
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")
     private List<Comment> comments = new ArrayList<>();
+
+    // 첨부파일 관계 - 추가
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attachment> attachments = new ArrayList<>();
 
     @Column(nullable = false)
     private int viewCount;
@@ -74,13 +79,18 @@ public class Board {
         return this.member != null ? this.member.getName() : "익명";
     }
 
-    // 댓글 추가 - 추가
+    // 댓글 추가 - 09장에서 추가
     public void addComment(Comment comment) {
         this.comments.add(comment);
     }
 
-    // 댓글 수 조회 - 추가
+    // 댓글 수 조회 - 09장에서 추가
     public int getCommentCount() {
         return this.comments.size();
+    }
+
+    // 첨부파일 추가 - 추가
+    public void addAttachment(Attachment attachment) {
+        this.attachments.add(attachment);
     }
 }

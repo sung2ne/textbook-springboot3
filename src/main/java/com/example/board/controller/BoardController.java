@@ -1,9 +1,11 @@
-// 수정: src/main/java/com/example/board/controller/BoardController.java (메서드 추가)
+// 수정: src/main/java/com/example/board/controller/BoardController.java (수정 관련 메서드 변경)
 package com.example.board.controller;
 
+import com.example.board.dto.AttachmentResponse;
 import com.example.board.dto.BoardDetailResponse;
 import com.example.board.dto.BoardForm;
 import com.example.board.dto.BoardListResponse;
+import com.example.board.service.AttachmentService;
 import com.example.board.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +18,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/boards")
@@ -24,6 +30,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class BoardController {
 
     private final BoardService boardService;
+    private final AttachmentService attachmentService;
 
     // GET /boards - 게시글 목록 조회 (03장에서 작성)
     @GetMapping
@@ -57,55 +64,58 @@ public class BoardController {
         return "boards/form";
     }
 
-    // POST /boards - 게시글 등록 (04장에서 작성)
+    // POST /boards - 게시글 등록 (04장에서 작성, 10장 03절에서 파일 업로드 추가)
     @PostMapping
     public String create(@Valid @ModelAttribute BoardForm form,
                          BindingResult bindingResult,
+                         @RequestParam(required = false) List<MultipartFile> files,
                          RedirectAttributes redirectAttributes) {
-
-        // writerName은 등록 시에만 필수 (수정 시 disabled로 전송 안됨)
-        if (form.getWriterName() == null || form.getWriterName().isBlank()) {
-            bindingResult.rejectValue("writerName", "NotBlank", "작성자를 입력해주세요.");
-        }
 
         if (bindingResult.hasErrors()) {
             return "boards/form";
         }
 
-        Long boardId = boardService.save(form);
+        Long boardId = boardService.save(form, files);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
 
         return "redirect:/boards/" + boardId;
     }
 
-    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (06장에서 작성)
+    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (06장에서 작성, 첨부파일 목록 추가)
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id, Model model) {
         BoardForm form = boardService.getFormById(id);
+        List<AttachmentResponse> attachments = attachmentService.findByBoardId(id)
+                .stream()
+                .map(AttachmentResponse::new)
+                .collect(Collectors.toList());
+
         model.addAttribute("boardForm", form);
+        model.addAttribute("attachments", attachments);
         return "boards/form";
     }
 
-    // POST /boards/{id} - 게시글 수정 처리 (06장에서 작성)
+    // POST /boards/{id} - 게시글 수정 처리 (06장에서 작성, 파일 업로드 추가)
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute BoardForm form,
                          BindingResult bindingResult,
+                         @RequestParam(required = false) List<MultipartFile> files,
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             return "boards/form";
         }
 
-        boardService.update(id, form);
+        boardService.update(id, form, files);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 수정되었습니다.");
 
         return "redirect:/boards/" + id;
     }
 
-    // DELETE /boards/{id} - 게시글 삭제 (추가)
+    // DELETE /boards/{id} - 게시글 삭제 (07장에서 추가)
     @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Void> delete(@PathVariable Long id) {
