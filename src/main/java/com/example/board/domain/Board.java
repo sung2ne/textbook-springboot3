@@ -1,10 +1,12 @@
-// 수정: src/main/java/com/example/board/domain/Board.java
+// 수정: src/main/java/com/example/board/domain/Board.java (필드 및 메서드 추가)
 package com.example.board.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "boards")
@@ -25,6 +27,10 @@ public class Board {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt DESC")
+    private List<Comment> comments = new ArrayList<>();
 
     @Column(nullable = false)
     private int viewCount;
@@ -52,16 +58,29 @@ public class Board {
         this.member = member;
     }
 
+    // 게시글 수정 - 02장에서 작성
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
     }
 
+    // 조회수 증가 - 02장에서 작성
     public void increaseViewCount() {
         this.viewCount++;
     }
 
+    // 작성자명 조회 - 02장에서 작성
     public String getWriterName() {
         return this.member != null ? this.member.getName() : "익명";
+    }
+
+    // 댓글 추가 - 추가
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+    }
+
+    // 댓글 수 조회 - 추가
+    public int getCommentCount() {
+        return this.comments.size();
     }
 }

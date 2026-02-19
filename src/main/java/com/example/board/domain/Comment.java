@@ -45,4 +45,9 @@ public class Comment {
     public String getWriterName() {
         return this.member != null ? this.member.getName() : "익명";
     }
+
+    // 댓글 수정
+    public void update(String content) {
+        this.content = content;
+    }
 }
