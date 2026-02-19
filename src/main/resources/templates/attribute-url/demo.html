@@ -1,0 +1,305 @@
+<!-- 새 파일: src/main/resources/templates/attribute-url/demo.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>속성 설정과 URL 데모</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .code { background: #f5f5f5; padding: 10px; margin: 10px 0; border-left: 4px solid #17a2b8; }
+        .result { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: 600; }
+
+        /* 탭 스타일 */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: #e9ecef; border: none; cursor: pointer; border-radius: 4px 4px 0 0; text-decoration: none; color: #333; }
+        .tab.active { background: #007bff; color: white; font-weight: bold; }
+
+        /* 페이징 스타일 */
+        .pagination { display: flex; gap: 5px; }
+        .page-link { padding: 8px 12px; background: #f8f9fa; border: 1px solid #dee2e6; text-decoration: none; color: #007bff; border-radius: 4px; }
+        .page-link.active { background: #007bff; color: white; font-weight: bold; }
+        .page-link.disabled { background: #e9ecef; color: #6c757d; cursor: not-allowed; }
+
+        /* 버튼 스타일 */
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn:disabled { background: #e9ecef; color: #6c757d; cursor: not-allowed; }
+
+        /* 링크 리스트 */
+        .link-list { list-style: none; padding: 0; }
+        .link-list li { margin: 10px 0; }
+        .link-list a { color: #007bff; text-decoration: none; }
+        .link-list a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Thymeleaf 속성 설정과 URL</h1>
+
+    <!-- 현재 상태 -->
+    <div class="section">
+        <h2>📊 현재 상태</h2>
+        <p><strong>현재 탭:</strong> <span th:text="${currentTab}">home</span></p>
+        <p><strong>현재 페이지:</strong> <span th:text="${currentPage}">1</span> / <span th:text="${totalPages}">5</span></p>
+    </div>
+
+    <!-- 1. th:href - 링크 생성 -->
+    <div class="section">
+        <h2>1. th:href - URL 링크 생성</h2>
+
+        <h3>1-1. 절대 경로</h3>
+        <p class="code">코드: &lt;a th:href="@{/boards}"&gt;게시판 목록&lt;/a&gt;</p>
+        <div class="result">
+            <a th:href="@{/boards}">게시판 목록</a>
+            <p style="color: #666; font-size: 0.9em;">→ /boards</p>
+        </div>
+
+        <h3>1-2. 경로 변수 (Path Variable)</h3>
+        <p class="code">코드: &lt;a th:href="@{/attribute-url/board/{id}(id=${boardId})}"&gt;</p>
+        <div class="result">
+            <ul class="link-list">
+                <li th:each="boardId : ${boardIds}">
+                    <a th:href="@{/attribute-url/board/{id}(id=${boardId})}"
+                       th:text="'게시글 ' + ${boardId} + '번 보기'">게시글 보기</a>
+                    <span style="color: #666; font-size: 0.9em;"
+                          th:text="' → /attribute-url/board/' + ${boardId}"></span>
+                </li>
+            </ul>
+        </div>
+
+        <h3>1-3. 쿼리 파라미터</h3>
+        <p class="code">코드: &lt;a th:href="@{/boards(page=${page}, size=10)}"&gt;</p>
+        <div class="result">
+            <ul class="link-list">
+                <li>
+                    <a th:href="@{/boards(page=1, size=10)}">1페이지 보기</a>
+                    <span style="color: #666; font-size: 0.9em;"> → /boards?page=1&size=10</span>
+                </li>
+                <li>
+                    <a th:href="@{/boards(page=2, size=20)}">2페이지 보기 (20개씩)</a>
+                    <span style="color: #666; font-size: 0.9em;"> → /boards?page=2&size=20</span>
+                </li>
+            </ul>
+        </div>
+
+        <h3>1-4. 경로 변수 + 쿼리 파라미터</h3>
+        <p class="code">코드: &lt;a th:href="@{/boards/{id}(id=${id}, mode='edit')}"&gt;</p>
+        <div class="result">
+            <a th:href="@{/boards/{id}(id=123, mode='edit')}">게시글 123번 수정</a>
+            <span style="color: #666; font-size: 0.9em;"> → /boards/123?mode=edit</span>
+        </div>
+    </div>
+
+    <!-- 2. th:src - 정적 리소스 -->
+    <div class="section">
+        <h2>2. th:src - 정적 리소스 경로</h2>
+
+        <p class="code">코드: &lt;img th:src="@{/images/logo.png}"&gt;</p>
+        <p class="code">코드: &lt;link rel="stylesheet" th:href="@{/css/style.css}"&gt;</p>
+        <p class="code">코드: &lt;script th:src="@{/js/app.js}"&gt;&lt;/script&gt;</p>
+
+        <div class="result">
+            <p>✅ CSS 파일: <code th:text="@{/css/style.css}">/css/style.css</code></p>
+            <p>✅ 이미지 파일: <code th:text="@{/images/logo.png}">/images/logo.png</code></p>
+            <p>✅ JS 파일: <code th:text="@{/js/app.js}">/js/app.js</code></p>
+        </div>
+
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>@{...}</code>는 컨텍스트 패스를 자동으로 추가해줍니다.
+        </p>
+    </div>
+
+    <!-- 3. th:class / th:classappend - 동적 클래스 -->
+    <div class="section">
+        <h2>3. th:class / th:classappend - 동적 클래스 설정</h2>
+
+        <h3>3-1. 탭 메뉴 (th:class)</h3>
+        <p class="code">코드: &lt;a th:class="${currentTab == 'home'} ? 'tab active' : 'tab'"&gt;</p>
+        <div class="result">
+            <div class="tabs">
+                <a th:href="@{/attribute-url/demo(tab='home')}"
+                   th:class="${currentTab == 'home'} ? 'tab active' : 'tab'">홈</a>
+                <a th:href="@{/attribute-url/demo(tab='boards')}"
+                   th:class="${currentTab == 'boards'} ? 'tab active' : 'tab'">게시판</a>
+                <a th:href="@{/attribute-url/demo(tab='profile')}"
+                   th:class="${currentTab == 'profile'} ? 'tab active' : 'tab'">프로필</a>
+                <a th:href="@{/attribute-url/demo(tab='settings')}"
+                   th:class="${currentTab == 'settings'} ? 'tab active' : 'tab'">설정</a>
+            </div>
+            <p style="color: #666; font-size: 0.9em;">
+                💡 현재 탭: <strong th:text="${currentTab}">home</strong>
+            </p>
+        </div>
+
+        <h3>3-2. 클래스 추가 (th:classappend)</h3>
+        <p class="code">코드: &lt;div class="card" th:classappend="${isHighlight} ? 'highlight'"&gt;</p>
+        <div class="result">
+            <p>기본 클래스에 조건부로 클래스를 추가합니다.</p>
+            <div class="btn btn-primary">기본 버튼</div>
+            <div class="btn btn-primary" style="opacity: 0.6;">비활성화된 버튼 (투명도 추가)</div>
+        </div>
+    </div>
+
+    <!-- 4. 페이징 링크 (실전 예제) -->
+    <div class="section">
+        <h2>4. 페이징 링크 - 실전 활용 예제</h2>
+
+        <p class="code">코드: &lt;a th:href="@{/attribute-url/demo(page=${currentPage - 1})}"&gt;</p>
+        <div class="result">
+            <div class="pagination">
+                <!-- 이전 버튼 -->
+                <a th:href="@{/attribute-url/demo(page=${currentPage - 1})}"
+                   th:class="${currentPage == 1} ? 'page-link disabled' : 'page-link'"
+                   th:attr="aria-disabled=${currentPage == 1}">이전</a>
+
+                <!-- 페이지 번호 -->
+                <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+                   th:href="@{/attribute-url/demo(page=${i})}"
+                   th:class="${i == currentPage} ? 'page-link active' : 'page-link'"
+                   th:text="${i}">1</a>
+
+                <!-- 다음 버튼 -->
+                <a th:href="@{/attribute-url/demo(page=${currentPage + 1})}"
+                   th:class="${currentPage == totalPages} ? 'page-link disabled' : 'page-link'"
+                   th:attr="aria-disabled=${currentPage == totalPages}">다음</a>
+            </div>
+            <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                💡 현재 페이지를 클릭해서 다른 페이지로 이동해보세요!
+            </p>
+        </div>
+    </div>
+
+    <!-- 5. th:checked, th:selected, th:disabled -->
+    <div class="section">
+        <h2>5. 폼 속성 - checked, selected, disabled</h2>
+
+        <h3>5-1. 체크박스 (th:checked)</h3>
+        <p class="code">코드: &lt;input type="checkbox" th:checked="${agreeTerms}"&gt;</p>
+        <div class="result">
+            <label>
+                <input type="checkbox" th:checked="${agreeTerms}">
+                이용약관에 동의합니다 <span style="color: #28a745;">(체크됨)</span>
+            </label><br>
+            <label>
+                <input type="checkbox" th:checked="${agreeMarketing}">
+                마케팅 정보 수신 동의 <span style="color: #dc3545;">(체크 안 됨)</span>
+            </label>
+        </div>
+
+        <h3>5-2. 셀렉트 박스 (th:selected)</h3>
+        <p class="code">코드: &lt;option th:each="cat : ${categories}" th:selected="${cat == selectedCategory}"&gt;</p>
+        <div class="result">
+            <select style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category}"
+                        th:selected="${category == selectedCategory}">카테고리</option>
+            </select>
+            <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                💡 "<span th:text="${selectedCategory}">자유게시판</span>"이 선택되어 있습니다.
+            </p>
+        </div>
+
+        <h3>5-3. 버튼 비활성화 (th:disabled)</h3>
+        <p class="code">코드: &lt;button th:disabled="${!canEdit}"&gt;수정&lt;/button&gt;</p>
+        <div class="result">
+            <button class="btn btn-primary" th:disabled="${!canEdit}">
+                수정 (활성화됨)
+            </button>
+            <button class="btn btn-danger" th:disabled="${!canDelete}">
+                삭제 (비활성화됨)
+            </button>
+            <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+                💡 삭제 버튼은 비활성화되어 클릭할 수 없습니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- 6. th:attr - 일반 속성 설정 -->
+    <div class="section">
+        <h2>6. th:attr - 일반 속성 설정</h2>
+
+        <p class="code">코드: &lt;div th:attr="data-id=${board.id}, data-category=${board.category}"&gt;</p>
+        <div class="result">
+            <table>
+                <thead>
+                    <tr>
+                        <th>게시글</th>
+                        <th>데이터 속성</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="boardId : ${boardIds}"
+                        th:attr="data-board-id=${boardId}, data-type='board'">
+                        <td th:text="'게시글 ' + ${boardId} + '번'">게시글</td>
+                        <td>
+                            <code>data-board-id="<span th:text="${boardId}">1</span>"</code><br>
+                            <code>data-type="board"</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="color: #666; font-size: 0.9em;">
+                💡 JavaScript에서 <code>element.dataset.boardId</code>로 접근 가능합니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- 7. 종합 예제: 네비게이션 메뉴 -->
+    <div class="section">
+        <h2>7. 종합 예제 - 네비게이션 메뉴</h2>
+
+        <div class="result">
+            <nav style="background: #f8f9fa; padding: 15px; border-radius: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 20px;">
+                        <a th:href="@{/}"
+                           th:class="${currentTab == 'home'} ? 'active' : ''"
+                           style="text-decoration: none; color: inherit; font-weight: bold;">
+                            🏠 홈
+                        </a>
+                        <a th:href="@{/boards}"
+                           th:class="${currentTab == 'boards'} ? 'active' : ''"
+                           style="text-decoration: none; color: inherit;">
+                            📋 게시판
+                        </a>
+                        <a th:href="@{/boards/new}"
+                           style="text-decoration: none; color: #007bff;">
+                            ✏️ 글쓰기
+                        </a>
+                    </div>
+                    <div>
+                        <a th:href="@{/login}"
+                           style="padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+                            로그인
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; background: #e7f3ff; border-left: 4px solid #2196F3;">
+        <h3>💡 핵심 정리</h3>
+        <ul>
+            <li><strong>@{...}</strong> - URL 표현식, 컨텍스트 패스 자동 추가</li>
+            <li><strong>경로 변수</strong> - <code>@{/boards/{id}(id=${board.id})}</code></li>
+            <li><strong>쿼리 파라미터</strong> - <code>@{/boards(page=1, size=10)}</code></li>
+            <li><strong>th:class</strong> - 클래스 전체 설정, 삼항 연산자 활용</li>
+            <li><strong>th:classappend</strong> - 기존 클래스에 추가</li>
+            <li><strong>th:checked/selected/disabled</strong> - 불린 값으로 폼 속성 제어</li>
+            <li><strong>th:attr</strong> - 여러 속성을 한 번에 설정 (data-* 속성 등)</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+            홈으로 돌아가기
+        </a>
+    </div>
+</body>
+</html>

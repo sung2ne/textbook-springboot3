@@ -1,0 +1,27 @@
+<!-- 새 파일: src/main/resources/templates/attribute-url/board-detail.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 상세</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .message { padding: 30px; background: #e7f3ff; border-radius: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>게시글 상세 페이지</h1>
+
+    <div class="message">
+        <h2 th:text="${message}">메시지</h2>
+        <p>게시글 ID: <strong th:text="${boardId}">1</strong></p>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a th:href="@{/attribute-url/demo}"
+           style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">
+            ← 데모 페이지로 돌아가기
+        </a>
+    </div>
+</body>
+</html>

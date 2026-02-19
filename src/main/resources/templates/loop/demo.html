@@ -1,0 +1,232 @@
+<!-- 새 파일: src/main/resources/templates/loop/demo.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>반복문 데모</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .code { background: #f5f5f5; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: 600; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #e9ecef; }
+        .badge { display: inline-block; padding: 5px 10px; border-radius: 4px; font-size: 0.85em; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-primary { background: #cce5ff; color: #004085; }
+        .first-row { background: #d4edda !important; }
+        .last-row { background: #fff3cd !important; }
+        .odd-row { background: #e7f3ff; }
+    </style>
+</head>
+<body>
+    <h1>Thymeleaf 반복문</h1>
+
+    <!-- 1. 기본 반복문 -->
+    <div class="section">
+        <h2>1. 기본 반복문 - 문자열 리스트</h2>
+        <p class="code">코드: &lt;li th:each="fruit : ${fruits}" th:text="${fruit}"&gt;&lt;/li&gt;</p>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 4px;">
+            <h3>과일 목록</h3>
+            <ul>
+                <li th:each="fruit : ${fruits}" th:text="${fruit}">과일</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 2. 상태 변수 - index, count -->
+    <div class="section">
+        <h2>2. 상태 변수 - index, count</h2>
+        <p class="code">코드: &lt;tr th:each="num, stat : ${numbers}"&gt;</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>stat.index (0부터)</th>
+                    <th>stat.count (1부터)</th>
+                    <th>숫자 값</th>
+                    <th>stat.size</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="num, stat : ${numbers}">
+                    <td th:text="${stat.index}">0</td>
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${num}">숫자</td>
+                    <td th:text="${stat.size}">5</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>stat</code>는 임의의 이름으로 변경 가능합니다 (예: <code>status</code>, <code>s</code> 등).
+        </p>
+    </div>
+
+    <!-- 3. first, last, odd, even -->
+    <div class="section">
+        <h2>3. 상태 변수 - first, last, odd, even</h2>
+        <p class="code">코드: &lt;tr th:each="fruit, stat : ${fruits}" th:class="${stat.odd} ? 'odd-row'"&gt;</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>순번</th>
+                    <th>과일</th>
+                    <th>first?</th>
+                    <th>last?</th>
+                    <th>odd?</th>
+                    <th>even?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="fruit, stat : ${fruits}"
+                    th:class="${stat.first} ? 'first-row' : (${stat.last} ? 'last-row' : (${stat.odd} ? 'odd-row' : ''))">
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${fruit}">과일</td>
+                    <td>
+                        <span th:if="${stat.first}" class="badge badge-success">✅</span>
+                        <span th:unless="${stat.first}">-</span>
+                    </td>
+                    <td>
+                        <span th:if="${stat.last}" class="badge badge-danger">✅</span>
+                        <span th:unless="${stat.last}">-</span>
+                    </td>
+                    <td th:text="${stat.odd}">false</td>
+                    <td th:text="${stat.even}">false</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: #666; font-size: 0.9em;">
+            💡 첫 번째 행은 초록색, 마지막 행은 노란색, 홀수 행은 파란색 배경입니다.
+        </p>
+    </div>
+
+    <!-- 4. 객체 리스트 반복 (실전 예제) -->
+    <div class="section">
+        <h2>4. 객체 리스트 반복 - 상품 목록</h2>
+        <p class="code">코드: &lt;tr th:each="product : ${products}"&gt;</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>상품명</th>
+                    <th>가격</th>
+                    <th>카테고리</th>
+                    <th>재고 상태</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="product, stat : ${products}">
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${product.name}">상품명</td>
+                    <td th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'">가격</td>
+                    <td>
+                        <span class="badge badge-primary" th:text="${product.category}">카테고리</span>
+                    </td>
+                    <td>
+                        <span th:if="${product.inStock}" class="badge badge-success">재고 있음</span>
+                        <span th:unless="${product.inStock}" class="badge badge-danger">품절</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>#numbers.formatInteger()</code>로 숫자에 천 단위 콤마를 추가할 수 있습니다.
+        </p>
+    </div>
+
+    <!-- 5. Map 접근 방법 -->
+    <div class="section">
+        <h2>5. Map 접근 - 두 가지 방법</h2>
+
+        <h3>방법 1: 키로 직접 접근 (반복문 없이)</h3>
+        <p class="code">코드: &lt;span th:text="${userInfo['이름']}"&gt;&lt;/span&gt; 또는 &lt;span th:text="${userInfo.이름}"&gt;&lt;/span&gt;</p>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <p>이름: <strong th:text="${userInfo['이름']}">홍길동</strong></p>
+            <p>이메일: <strong th:text="${userInfo['이메일']}">hong@example.com</strong></p>
+            <p>전화번호: <strong th:text="${userInfo['전화번호']}">010-1234-5678</strong></p>
+        </div>
+        <p style="color: #666; font-size: 0.9em;">
+            💡 키 이름을 알고 있다면 <code>${map['키']}</code> 또는 <code>${map.키}</code>로 직접 접근할 수 있습니다.
+        </p>
+
+        <h3 style="margin-top: 30px;">방법 2: th:each로 순회</h3>
+        <p class="code">코드: &lt;tr th:each="entry : ${userInfo}"&gt;</p>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 30%;">항목</th>
+                    <th>내용</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="entry : ${userInfo}">
+                    <td><strong th:text="${entry.key}">키</strong></td>
+                    <td th:text="${entry.value}">값</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: #666; font-size: 0.9em;">
+            💡 키를 모르거나 모든 항목을 순회해야 할 때는 <code>th:each</code>를 사용합니다.
+        </p>
+    </div>
+
+    <!-- 6. 조건부 반복 (필터링) -->
+    <div class="section">
+        <h2>6. 조건부 반복 - 재고 있는 상품만 표시</h2>
+        <p class="code">코드: &lt;tr th:each="product : ${products}" th:if="${product.inStock}"&gt;</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>순번</th>
+                    <th>상품명</th>
+                    <th>가격</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="product, stat : ${products}" th:if="${product.inStock}">
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${product.name}">상품명</td>
+                    <td th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + '원'">가격</td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="color: #666; font-size: 0.9em;">
+            💡 <code>th:each</code>와 <code>th:if</code>를 함께 사용하여 조건에 맞는 항목만 표시할 수 있습니다.
+        </p>
+    </div>
+
+    <!-- 7. 빈 리스트 처리 -->
+    <div class="section">
+        <h2>7. 빈 리스트 처리</h2>
+        <p class="code">코드: &lt;p th:if="${#lists.isEmpty(products)}"&gt;상품이 없습니다.&lt;/p&gt;</p>
+        <div style="background: #f9f9f9; padding: 15px; border-radius: 4px;">
+            <div th:if="${!#lists.isEmpty(products)}">
+                <p>상품 개수: <strong th:text="${#lists.size(products)}">0</strong>개</p>
+            </div>
+            <div th:if="${#lists.isEmpty(products)}">
+                <p style="color: #999;">등록된 상품이 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 20px; background: #e7f3ff; border-left: 4px solid #2196F3;">
+        <h3>💡 핵심 정리</h3>
+        <ul>
+            <li><strong>th:each</strong> - List, Map, 배열 등 컬렉션 순회</li>
+            <li><strong>상태 변수</strong> - index(0부터), count(1부터), first, last, odd, even 제공</li>
+            <li><strong>객체 접근</strong> - <code>${item.property}</code> 형태로 객체 속성 접근</li>
+            <li><strong>조건부 반복</strong> - th:each와 th:if를 함께 사용하여 필터링</li>
+            <li><strong>Map 접근</strong> - 직접 접근(<code>${map['키']}</code>) 또는 순회(<code>th:each</code>)</li>
+            <li><strong>유틸리티 객체</strong> - #lists, #numbers 등으로 추가 기능 활용</li>
+        </ul>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="/" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">
+            홈으로 돌아가기
+        </a>
+    </div>
+</body>
+</html>
