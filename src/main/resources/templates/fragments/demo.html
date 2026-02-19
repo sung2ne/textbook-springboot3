@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Fragment 데모</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Fragment 사용 예제</h1>
+
+        <!-- 섹션 1: Alert Fragment -->
+        <section class="mt-4">
+            <h3>1. Alert Fragment (파라미터 사용)</h3>
+
+            <!-- Success Alert -->
+            <div th:replace="~{fragments/common :: alert ('success', ${successMessage})}"></div>
+
+            <!-- Warning Alert -->
+            <div th:replace="~{fragments/common :: alert ('warning', ${warningMessage})}"></div>
+
+            <!-- Error Alert -->
+            <div th:replace="~{fragments/common :: alert ('danger', ${errorMessage})}"></div>
+        </section>
+
+        <!-- 섹션 2: Card Fragment -->
+        <section class="mt-4">
+            <h3>2. Card Fragment (파라미터 사용)</h3>
+            <div th:replace="~{fragments/common :: card (${cardTitle}, ${cardContent})}"></div>
+        </section>
+
+        <!-- 섹션 3: Badge Fragment -->
+        <section class="mt-4">
+            <h3>3. Badge Fragment (파라미터 사용)</h3>
+            <p>
+                상태:
+                <span th:replace="~{fragments/common :: badge ('신규', 'primary')}"></span>
+                <span th:replace="~{fragments/common :: badge ('진행중', 'warning')}"></span>
+                <span th:replace="~{fragments/common :: badge ('완료', 'success')}"></span>
+                <span th:replace="~{fragments/common :: badge ('취소', 'danger')}"></span>
+            </p>
+        </section>
+
+        <!-- 섹션 4: Pagination Fragment -->
+        <section class="mt-4">
+            <h3>4. Pagination Fragment (파라미터 사용)</h3>
+            <div th:replace="~{fragments/common :: pagination (${currentPage}, ${totalPages})}"></div>
+        </section>
+
+        <!-- 섹션 5: Modal Fragment -->
+        <section class="mt-4">
+            <h3>5. Modal Fragment (파라미터 사용)</h3>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                모달 열기
+            </button>
+            <div th:replace="~{fragments/common :: modal ('exampleModal', '알림', '이것은 모달 창입니다.')}"></div>
+        </section>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
