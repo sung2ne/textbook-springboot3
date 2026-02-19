@@ -8,6 +8,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -49,6 +51,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/boards", "/boards/{id}").permitAll()
                 .requestMatchers("/login", "/members/signup").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             // 폼 로그인 설정
@@ -58,7 +61,6 @@ public class SecurityConfig {
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .successHandler((request, response, authentication) -> {
-                    // 저장된 URL 확인
                     String redirectUrl = (String) request.getSession()
                             .getAttribute("REDIRECT_URL");
 
@@ -87,6 +89,11 @@ public class SecurityConfig {
                 .tokenRepository(persistentTokenRepository())
                 .userDetailsService(userDetailsService)
                 .rememberMeParameter("remember-me")
+            )
+            // 세션 관리 - 추가
+            .sessionManagement(session -> session
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
             )
             // 예외 처리 - 커스텀 핸들러 사용
             .exceptionHandling(exception -> exception

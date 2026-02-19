@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -51,7 +52,7 @@ public class BoardController {
         model.addAttribute("page", boardPage);
         model.addAttribute("keyword", keyword);
 
-        // 로그인 상태 전달 (Thymeleaf에서 사용) - 추가
+        // 로그인 상태 전달 (Thymeleaf에서 사용) - 08장에서 추가
         if (userDetails != null) {
             model.addAttribute("currentUsername", userDetails.getUsername());
         }
@@ -67,7 +68,7 @@ public class BoardController {
         BoardDetailResponse board = boardService.findById(id);
         model.addAttribute("board", board);
 
-        // 본인 글인지 확인 (수정/삭제 버튼 표시용) - 추가
+        // 본인 글인지 확인 (수정/삭제 버튼 표시용) - 08장에서 추가
         if (userDetails != null) {
             boolean isOwner = boardService.isOwner(id, userDetails.getUsername());
             boolean isAdmin = userDetails.getAuthorities().stream()
@@ -75,10 +76,6 @@ public class BoardController {
 
             model.addAttribute("isOwner", isOwner);
             model.addAttribute("isAdmin", isAdmin);
-        } else {
-            // 비로그인 시 명시적으로 false 설정 (템플릿 EL 오류 방지)
-            model.addAttribute("isOwner", false);
-            model.addAttribute("isAdmin", false);
         }
 
         return "boards/detail";
@@ -88,7 +85,7 @@ public class BoardController {
     @GetMapping("/new")
     public String createForm(@CurrentMember Member member, Model model) {
         model.addAttribute("boardForm", new BoardForm());
-        model.addAttribute("writerName", member.getName());  // 인증된 사용자 이름 표시
+        model.addAttribute("writerName", member.getName());
         return "boards/form";
     }
 
@@ -104,7 +101,6 @@ public class BoardController {
             return "boards/form";
         }
 
-        // 인증된 사용자의 username으로 저장 (파일 포함)
         Long boardId = boardService.save(form, userDetails.getUsername(), files);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
@@ -117,7 +113,7 @@ public class BoardController {
     public String editForm(@PathVariable Long id,
                            @AuthenticationPrincipal CustomUserDetails userDetails,
                            Model model) {
-        // 본인 글인지 확인 - 추가
+        // 본인 글인지 확인 - 08장에서 추가
         if (!boardService.isOwner(id, userDetails.getUsername())) {
             throw new IllegalArgumentException("수정 권한이 없습니다");
         }
@@ -146,7 +142,6 @@ public class BoardController {
             return "boards/form";
         }
 
-        // 권한 검증 포함 수정 (파일 포함) - 변경
         boardService.update(id, form, userDetails.getUsername(), files);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 수정되었습니다.");
@@ -154,17 +149,24 @@ public class BoardController {
         return "redirect:/boards/" + id;
     }
 
-    // DELETE /boards/{id} - 게시글 삭제 (08장에서 작성)
+    // DELETE /boards/{id} - 게시글 삭제 - 변경
+    // @PreAuthorize가 권한을 체크하므로 isAdmin 파라미터 불필요
     @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<Void> delete(@PathVariable Long id,
                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        // 관리자 여부 확인 - 추가
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
-
-        // 권한 검증 포함 삭제 - 변경
-        boardService.delete(id, userDetails.getUsername(), isAdmin);
+        boardService.delete(id, userDetails.getUsername());
         return ResponseEntity.ok().build();
+    }
+
+    // 예외 처리 - 추가
+    @ExceptionHandler(AccessDeniedException.class)
+    public String handleAccessDenied() {
+        return "redirect:/error/403";
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public String handleNotFound() {
+        return "redirect:/error/404";
     }
 }

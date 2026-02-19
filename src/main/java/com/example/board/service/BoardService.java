@@ -11,6 +11,8 @@ import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,35 +49,8 @@ public class BoardService {
         return boardRepository.save(board).getId();
     }
 
-    // 게시글 저장 (파일 포함) - 10장에서 추가
-    @Transactional
-    public Long save(BoardForm form, List<MultipartFile> files) {
-        Member member = memberRepository.findByName(form.getWriterName())
-                .orElseGet(() -> memberRepository.save(
-                        Member.builder()
-                                .name(form.getWriterName())
-                                .email(form.getWriterName() + "@temp.com")
-                                .password("temp")
-                                .build()
-                ));
-
-        Board board = Board.builder()
-                .title(form.getTitle())
-                .content(form.getContent())
-                .member(member)
-                .build();
-
-        Board saved = boardRepository.save(board);
-
-        // 첨부파일 저장
-        if (files != null && !files.isEmpty()) {
-            attachmentService.saveAll(files, saved);
-        }
-
-        return saved.getId();
-    }
-
-    // 게시글 저장 (인증된 사용자용) - 추가
+    // 게시글 저장 (인증된 사용자용, 파일 포함) - 메서드 보안 적용
+    @PreAuthorize("isAuthenticated()")
     @Transactional
     public Long save(BoardForm form, String username, List<MultipartFile> files) {
         Member member = memberRepository.findByUsername(username)
@@ -108,6 +83,13 @@ public class BoardService {
         return new BoardDetailResponse(board);
     }
 
+    // 상세 조회 (권한 체크용) - 추가
+    @PostAuthorize("returnObject.member.username == authentication.name or hasRole('ADMIN')")
+    public Board findByIdWithAuth(Long id) {
+        return boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+    }
+
     // 상세 조회 (조회수 증가 없이 - 수정 폼용) - 05장에서 작성
     public BoardDetailResponse findByIdForEdit(Long id) {
         Board board = boardRepository.findByIdWithMember(id)
@@ -132,31 +114,15 @@ public class BoardService {
         board.update(form.getTitle(), form.getContent());
     }
 
-    // 게시글 수정 (파일 포함) - 10장 05절에서 추가
-    @Transactional
-    public void update(Long id, BoardForm form, List<MultipartFile> files) {
-        Board board = boardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
-
-        board.update(form.getTitle(), form.getContent());
-
-        // 새 첨부파일 저장
-        if (files != null && !files.isEmpty()) {
-            attachmentService.saveAll(files, board);
-        }
-    }
-
-    // 게시글 수정 (권한 검증 + 파일 포함) - 추가
+    // 게시글 수정 (메서드 보안 + 파일 포함) - 변경
+    // 어노테이션이 내부 권한 검증 로직을 대체
+    @PreAuthorize("@boardSecurityService.isOwner(#id, authentication.name) or hasRole('ADMIN')")
     @Transactional
     public void update(Long id, BoardForm form, String username, List<MultipartFile> files) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
 
-        // 본인 글인지 확인
-        if (!board.getMember().getUsername().equals(username)) {
-            throw new IllegalArgumentException("수정 권한이 없습니다");
-        }
-
+        // 08장의 권한 검증 로직이 @PreAuthorize로 대체됨
         board.update(form.getTitle(), form.getContent());
 
         // 새 첨부파일 저장
@@ -173,21 +139,17 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
-    // 게시글 삭제 (권한 검증 포함) - 추가
+    // 게시글 삭제 (메서드 보안 적용) - 추가
+    // 어노테이션이 isAdmin 파라미터 역할을 대체
+    @PreAuthorize("@boardSecurityService.isOwner(#id, authentication.name) or hasRole('ADMIN')")
     @Transactional
-    public void delete(Long id, String username, boolean isAdmin) {
+    public void delete(Long id, String username) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
-
-        // 본인 글이거나 관리자인지 확인
-        if (!board.getMember().getUsername().equals(username) && !isAdmin) {
-            throw new IllegalArgumentException("삭제 권한이 없습니다");
-        }
-
         boardRepository.delete(board);
     }
 
-    // 본인 글인지 확인 - 추가
+    // 본인 글인지 확인 - 08장에서 작성
     public boolean isOwner(Long boardId, String username) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + boardId));
