@@ -1,0 +1,13 @@
+spring:
+  profiles:
+    active: dev
+
+  application:
+    name: board
+
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    com.example.board: DEBUG
