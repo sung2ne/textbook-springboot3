@@ -4,6 +4,8 @@ import com.example.board.domain.Board;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 public class BoardDetailResponse {
@@ -16,6 +18,7 @@ public class BoardDetailResponse {
     private final int viewCount;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
+    private final List<AttachmentResponse> attachments;
 
     public BoardDetailResponse(Board board) {
         this.id = board.getId();
@@ -26,5 +29,8 @@ public class BoardDetailResponse {
         this.viewCount = board.getViewCount();
         this.createdAt = board.getCreatedAt();
         this.updatedAt = board.getUpdatedAt();
+        this.attachments = board.getAttachments().stream()
+                .map(AttachmentResponse::new)
+                .collect(Collectors.toList());
     }
 }

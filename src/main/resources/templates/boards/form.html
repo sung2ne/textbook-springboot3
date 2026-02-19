@@ -13,9 +13,10 @@
     <form th:action="${boardForm.id != null} ? @{/boards/{id}(id=${boardForm.id})} : @{/boards}"
           th:object="${boardForm}"
           method="post"
+          enctype="multipart/form-data"
           class="mt-4">
 
-        <!-- 작성자 (등록 시 입력, 수정 시 읽기 전용) -->
+        <!-- 작성자 (등록 시 입력, 수정 시 읽기 전용) - 07장에서 작성 -->
         <div class="mb-3" th:if="${boardForm.id == null}">
             <label for="writerName" class="form-label">작성자</label>
             <input type="text" class="form-control" id="writerName"
@@ -30,7 +31,7 @@
             <input type="text" class="form-control" th:value="${boardForm.writerName}" disabled>
         </div>
 
-        <!-- 제목 - 04장에서 작성 -->
+        <!-- 제목 - 05장에서 작성 -->
         <div class="mb-3">
             <label for="title" class="form-label">제목</label>
             <input type="text" class="form-control" id="title"
@@ -40,7 +41,7 @@
                  th:errors="*{title}">제목 오류</div>
         </div>
 
-        <!-- 내용 - 04장에서 작성 -->
+        <!-- 내용 - 05장에서 작성 -->
         <div class="mb-3">
             <label for="content" class="form-label">내용</label>
             <textarea class="form-control" id="content" rows="15"
@@ -50,7 +51,34 @@
                  th:errors="*{content}">내용 오류</div>
         </div>
 
-        <!-- 버튼 -->
+        <!-- 기존 첨부파일 (수정 시) - 추가 -->
+        <div class="mb-3" th:if="${boardForm.id != null and attachments != null and !attachments.isEmpty()}">
+            <label class="form-label">기존 첨부파일</label>
+            <ul class="list-group" id="attachment-list">
+                <li class="list-group-item d-flex justify-content-between align-items-center"
+                    th:each="file : ${attachments}">
+                    <div>
+                        <span th:text="${file.originalFilename}">파일명</span>
+                        <small class="text-muted ms-2"
+                               th:text="${#numbers.formatDecimal(file.fileSize / 1024.0, 1, 1)} + ' KB'">
+                            100 KB
+                        </small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger"
+                            th:attr="onclick='deleteAttachment(' + ${file.id} + ', this)'">삭제</button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 파일 첨부 (신규/수정 모두 표시) - 수정 -->
+        <div class="mb-3">
+            <label for="files" class="form-label"
+                   th:text="${boardForm.id != null} ? '파일 추가' : '첨부파일'">첨부파일</label>
+            <input type="file" class="form-control" id="files" name="files" multiple>
+            <div class="form-text">최대 10MB, 여러 파일 선택 가능</div>
+        </div>
+
+        <!-- 버튼 - 07장에서 작성 -->
         <div class="d-flex justify-content-between">
             <a th:href="@{/boards}" class="btn btn-secondary">취소</a>
             <button type="submit" class="btn btn-primary"
@@ -58,5 +86,37 @@
         </div>
     </form>
 </main>
+
+<!-- 첨부파일 삭제 스크립트 - 추가 -->
+<th:block layout:fragment="script">
+<script>
+    function deleteAttachment(id, button) {
+        if (!confirm('첨부파일을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        fetch('/files/' + id, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (response.ok) {
+                button.closest('li').remove();
+
+                // 첨부파일이 모두 삭제되면 목록 영역 숨김
+                const list = document.getElementById('attachment-list');
+                if (list && list.children.length === 0) {
+                    list.closest('.mb-3').style.display = 'none';
+                }
+            } else {
+                alert('첨부파일 삭제에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('삭제 실패:', error);
+            alert('첨부파일 삭제에 실패했습니다.');
+        });
+    }
+</script>
+</th:block>
 </body>
 </html>
