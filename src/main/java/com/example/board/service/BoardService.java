@@ -1,4 +1,4 @@
-// 수정: src/main/java/com/example/board/service/BoardService.java (update 메서드 오버로딩 추가)
+// 수정: src/main/java/com/example/board/service/BoardService.java
 package com.example.board.service;
 
 import com.example.board.domain.Board;
@@ -47,7 +47,7 @@ public class BoardService {
         return boardRepository.save(board).getId();
     }
 
-    // 게시글 저장 (파일 포함) - 10장 03절에서 추가
+    // 게시글 저장 (파일 포함) - 10장에서 추가
     @Transactional
     public Long save(BoardForm form, List<MultipartFile> files) {
         Member member = memberRepository.findByName(form.getWriterName())
@@ -58,6 +58,28 @@ public class BoardService {
                                 .password("temp")
                                 .build()
                 ));
+
+        Board board = Board.builder()
+                .title(form.getTitle())
+                .content(form.getContent())
+                .member(member)
+                .build();
+
+        Board saved = boardRepository.save(board);
+
+        // 첨부파일 저장
+        if (files != null && !files.isEmpty()) {
+            attachmentService.saveAll(files, saved);
+        }
+
+        return saved.getId();
+    }
+
+    // 게시글 저장 (인증된 사용자용) - 추가
+    @Transactional
+    public Long save(BoardForm form, String username, List<MultipartFile> files) {
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다"));
 
         Board board = Board.builder()
                 .title(form.getTitle())
@@ -124,12 +146,54 @@ public class BoardService {
         }
     }
 
-    // 게시글 삭제 - 07장에서 추가
+    // 게시글 수정 (권한 검증 + 파일 포함) - 추가
+    @Transactional
+    public void update(Long id, BoardForm form, String username, List<MultipartFile> files) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+
+        // 본인 글인지 확인
+        if (!board.getMember().getUsername().equals(username)) {
+            throw new IllegalArgumentException("수정 권한이 없습니다");
+        }
+
+        board.update(form.getTitle(), form.getContent());
+
+        // 새 첨부파일 저장
+        if (files != null && !files.isEmpty()) {
+            attachmentService.saveAll(files, board);
+        }
+    }
+
+    // 게시글 삭제 - 08장에서 작성
     @Transactional
     public void delete(Long id) {
         Board board = boardRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
         boardRepository.delete(board);
+    }
+
+    // 게시글 삭제 (권한 검증 포함) - 추가
+    @Transactional
+    public void delete(Long id, String username, boolean isAdmin) {
+        Board board = boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + id));
+
+        // 본인 글이거나 관리자인지 확인
+        if (!board.getMember().getUsername().equals(username) && !isAdmin) {
+            throw new IllegalArgumentException("삭제 권한이 없습니다");
+        }
+
+        boardRepository.delete(board);
+    }
+
+    // 본인 글인지 확인 - 추가
+    public boolean isOwner(Long boardId, String username) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다. id=" + boardId));
+
+        return board.getMember() != null &&
+               board.getMember().getUsername().equals(username);
     }
 
     // 목록 조회 (페이징) - 03장에서 작성

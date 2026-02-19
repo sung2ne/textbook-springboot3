@@ -16,6 +16,12 @@
                 <span class="nav-link text-light" sec:authorize="isAuthenticated()">
                     <span sec:authentication="name"></span>님
                 </span>
+                <!-- 글쓰기 버튼 - 추가 -->
+                <a class="btn btn-outline-light btn-sm me-2" th:href="@{/boards/new}"
+                   sec:authorize="isAuthenticated()">글쓰기</a>
+                <!-- 관리자 메뉴 - 추가 -->
+                <a class="nav-link text-warning" th:href="@{/admin/members}"
+                   sec:authorize="hasRole('ADMIN')">회원관리</a>
                 <form th:action="@{/logout}" method="post" class="d-inline" sec:authorize="isAuthenticated()">
                     <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
                 </form>

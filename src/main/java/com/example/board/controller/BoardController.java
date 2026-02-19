@@ -1,10 +1,13 @@
-// 수정: src/main/java/com/example/board/controller/BoardController.java (수정 관련 메서드 변경)
+// 수정: src/main/java/com/example/board/controller/BoardController.java
 package com.example.board.controller;
 
 import com.example.board.dto.AttachmentResponse;
 import com.example.board.dto.BoardDetailResponse;
 import com.example.board.dto.BoardForm;
 import com.example.board.dto.BoardListResponse;
+import com.example.board.security.CurrentMember;
+import com.example.board.security.CustomUserDetails;
+import com.example.board.domain.Member;
 import com.example.board.service.AttachmentService;
 import com.example.board.service.BoardService;
 import jakarta.validation.Valid;
@@ -14,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -37,6 +41,7 @@ public class BoardController {
     public String list(@RequestParam(defaultValue = "0") int page,
                        @RequestParam(defaultValue = "10") int size,
                        @RequestParam(required = false) String keyword,
+                       @AuthenticationPrincipal CustomUserDetails userDetails,
                        Model model) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
@@ -46,45 +51,77 @@ public class BoardController {
         model.addAttribute("page", boardPage);
         model.addAttribute("keyword", keyword);
 
+        // 로그인 상태 전달 (Thymeleaf에서 사용) - 추가
+        if (userDetails != null) {
+            model.addAttribute("currentUsername", userDetails.getUsername());
+        }
+
         return "boards/list";
     }
 
     // GET /boards/{id} - 게시글 상세 조회 (05장에서 작성)
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
+                         Model model) {
         BoardDetailResponse board = boardService.findById(id);
         model.addAttribute("board", board);
+
+        // 본인 글인지 확인 (수정/삭제 버튼 표시용) - 추가
+        if (userDetails != null) {
+            boolean isOwner = boardService.isOwner(id, userDetails.getUsername());
+            boolean isAdmin = userDetails.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+            model.addAttribute("isOwner", isOwner);
+            model.addAttribute("isAdmin", isAdmin);
+        } else {
+            // 비로그인 시 명시적으로 false 설정 (템플릿 EL 오류 방지)
+            model.addAttribute("isOwner", false);
+            model.addAttribute("isAdmin", false);
+        }
+
         return "boards/detail";
     }
 
     // GET /boards/new - 게시글 작성 폼 표시 (04장에서 작성)
     @GetMapping("/new")
-    public String createForm(Model model) {
+    public String createForm(@CurrentMember Member member, Model model) {
         model.addAttribute("boardForm", new BoardForm());
+        model.addAttribute("writerName", member.getName());  // 인증된 사용자 이름 표시
         return "boards/form";
     }
 
-    // POST /boards - 게시글 등록 (04장에서 작성, 10장 03절에서 파일 업로드 추가)
+    // POST /boards - 게시글 등록 (04장에서 작성, 10장에서 파일 업로드 추가)
     @PostMapping
     public String create(@Valid @ModelAttribute BoardForm form,
                          BindingResult bindingResult,
                          @RequestParam(required = false) List<MultipartFile> files,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             return "boards/form";
         }
 
-        Long boardId = boardService.save(form, files);
+        // 인증된 사용자의 username으로 저장 (파일 포함)
+        Long boardId = boardService.save(form, userDetails.getUsername(), files);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 등록되었습니다.");
 
         return "redirect:/boards/" + boardId;
     }
 
-    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (06장에서 작성, 첨부파일 목록 추가)
+    // GET /boards/{id}/edit - 게시글 수정 폼 표시 (06장에서 작성)
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@PathVariable Long id,
+                           @AuthenticationPrincipal CustomUserDetails userDetails,
+                           Model model) {
+        // 본인 글인지 확인 - 추가
+        if (!boardService.isOwner(id, userDetails.getUsername())) {
+            throw new IllegalArgumentException("수정 권한이 없습니다");
+        }
+
         BoardForm form = boardService.getFormById(id);
         List<AttachmentResponse> attachments = attachmentService.findByBoardId(id)
                 .stream()
@@ -96,30 +133,38 @@ public class BoardController {
         return "boards/form";
     }
 
-    // POST /boards/{id} - 게시글 수정 처리 (06장에서 작성, 파일 업로드 추가)
+    // POST /boards/{id} - 게시글 수정 처리 (06장에서 작성, 10장에서 파일 업로드 추가)
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute BoardForm form,
                          BindingResult bindingResult,
                          @RequestParam(required = false) List<MultipartFile> files,
+                         @AuthenticationPrincipal CustomUserDetails userDetails,
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             return "boards/form";
         }
 
-        boardService.update(id, form, files);
+        // 권한 검증 포함 수정 (파일 포함) - 변경
+        boardService.update(id, form, userDetails.getUsername(), files);
 
         redirectAttributes.addFlashAttribute("message", "게시글이 수정되었습니다.");
 
         return "redirect:/boards/" + id;
     }
 
-    // DELETE /boards/{id} - 게시글 삭제 (07장에서 추가)
+    // DELETE /boards/{id} - 게시글 삭제 (08장에서 작성)
     @DeleteMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boardService.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
+        // 관리자 여부 확인 - 추가
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        // 권한 검증 포함 삭제 - 변경
+        boardService.delete(id, userDetails.getUsername(), isAdmin);
         return ResponseEntity.ok().build();
     }
 }

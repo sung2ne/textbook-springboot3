@@ -1,4 +1,4 @@
-// 새 파일: src/main/java/com/example/board/dto/BoardListResponse.java
+// 수정: src/main/java/com/example/board/dto/BoardListResponse.java
 package com.example.board.dto;
 
 import com.example.board.domain.Board;
@@ -12,6 +12,7 @@ public class BoardListResponse {
     private final Long id;
     private final String title;
     private final String writerName;
+    private final String writerUsername;
     private final int viewCount;
     private final LocalDateTime createdAt;
 
@@ -19,6 +20,8 @@ public class BoardListResponse {
         this.id = board.getId();
         this.title = board.getTitle();
         this.writerName = board.getWriterName();
+        this.writerUsername = board.getMember() != null
+                ? board.getMember().getUsername() : null;
         this.viewCount = board.getViewCount();
         this.createdAt = board.getCreatedAt();
     }
