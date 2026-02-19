@@ -1,4 +1,4 @@
-// 수정: src/main/java/com/example/board/domain/Member.java (Spring Security 필드 추가)
+// 수정: src/main/java/com/example/board/domain/Member.java
 package com.example.board.domain;
 
 import jakarta.persistence.*;
@@ -74,5 +74,26 @@ public class Member {
     public void updateInfo(String name, String email) {
         this.name = name;
         this.email = email;
+    }
+
+    // 관리자 생성용 정적 팩토리 메서드
+    public static Member createAdmin(String username, String password, String name, String email) {
+        return Member.builder()
+                .username(username)
+                .password(password)
+                .name(name)
+                .email(email)
+                .role(Role.ADMIN)
+                .build();
+    }
+
+    // 역할 변경
+    public void changeRole(Role role) {
+        this.role = role;
+    }
+
+    // 계정 활성화 상태 변경
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

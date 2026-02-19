@@ -90,12 +90,12 @@ public class SecurityConfig {
                 .userDetailsService(userDetailsService)
                 .rememberMeParameter("remember-me")
             )
-            // 세션 관리 - 추가
+            // 세션 관리
             .sessionManagement(session -> session
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
             )
-            // 예외 처리 - 커스텀 핸들러 사용
+            // 예외 처리
             .exceptionHandling(exception -> exception
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -103,7 +103,11 @@ public class SecurityConfig {
 
         // H2 콘솔용 설정
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/h2-console/**")
+                .ignoringRequestMatchers("/admin/members/*/role")
+                .ignoringRequestMatchers("/admin/members/*/toggle")
+            )
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();

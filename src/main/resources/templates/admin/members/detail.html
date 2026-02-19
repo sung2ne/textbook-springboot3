@@ -1,0 +1,166 @@
+<!-- 새 파일: src/main/resources/templates/admin/members/detail.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+
+<head>
+    <title>회원 상세 정보</title>
+</head>
+
+<body>
+<main layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>회원 상세 정보</h2>
+        <a th:href="@{/admin/members}" class="btn btn-outline-secondary">목록으로</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0" th:text="${member.username}"></h5>
+        </div>
+        <div class="card-body">
+            <!-- 회원 정보 -->
+            <table class="table table-borderless">
+                <tr>
+                    <th style="width: 150px;">ID</th>
+                    <td th:text="${member.id}"></td>
+                </tr>
+                <tr>
+                    <th>이름</th>
+                    <td th:text="${member.name}"></td>
+                </tr>
+                <tr>
+                    <th>이메일</th>
+                    <td th:text="${member.email}"></td>
+                </tr>
+                <tr>
+                    <th>역할</th>
+                    <td>
+                        <select class="form-select form-select-sm" style="width: 150px;"
+                                id="roleSelect" th:data-member-id="${member.id}">
+                            <option th:each="r : ${T(com.example.board.domain.Role).values()}"
+                                    th:value="${r}"
+                                    th:text="${r.title}"
+                                    th:selected="${r == member.role}"></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>상태</th>
+                    <td>
+                        <span id="statusBadge" class="badge me-2"
+                              th:classappend="${member.enabled} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${member.enabled} ? '활성' : '비활성'"></span>
+                        <button class="btn btn-sm btn-outline-warning" id="toggleBtn"
+                                th:data-member-id="${member.id}">
+                            상태 변경
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <th>가입일</th>
+                    <td th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                </tr>
+                <tr>
+                    <th>활동</th>
+                    <td>
+                        게시글 <strong th:text="${boardCount}"></strong>개,
+                        댓글 <strong th:text="${commentCount}"></strong>개
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-danger" id="deleteBtn" th:data-member-id="${member.id}">
+                회원 삭제
+            </button>
+        </div>
+    </div>
+</main>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+// 역할 변경
+document.getElementById('roleSelect').addEventListener('change', function() {
+    const memberId = this.dataset.memberId;
+    const role = this.value;
+
+    if (!confirm(`역할을 ${role}로 변경하시겠습니까?`)) {
+        location.reload();
+        return;
+    }
+
+    fetch(`/admin/members/${memberId}/role`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `role=${role}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert(data.message);
+            location.reload();
+        }
+    })
+    .catch(error => {
+        alert('역할 변경에 실패했습니다.');
+        location.reload();
+    });
+});
+
+// 계정 활성화/비활성화 토글
+document.getElementById('toggleBtn').addEventListener('click', function() {
+    const memberId = this.dataset.memberId;
+
+    fetch(`/admin/members/${memberId}/toggle`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            const badge = document.getElementById('statusBadge');
+            badge.className = data.enabled ? 'badge bg-success' : 'badge bg-secondary';
+            badge.textContent = data.enabled ? '활성' : '비활성';
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        alert('상태 변경에 실패했습니다.');
+    });
+});
+
+// 회원 삭제
+document.getElementById('deleteBtn').addEventListener('click', function() {
+    const memberId = this.dataset.memberId;
+
+    if (!confirm('정말 이 회원을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+        return;
+    }
+
+    fetch(`/admin/members/${memberId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.href = '/admin/members';
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        alert('회원 삭제에 실패했습니다.');
+    });
+});
+</script>
+</th:block>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// 새 파일: src/main/java/com/example/board/repository/CommentRepository.java
+// 수정: src/main/java/com/example/board/repository/CommentRepository.java
 package com.example.board.repository;
 
 import com.example.board.domain.Comment;
@@ -14,4 +14,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByBoardIdWithMember(@Param("boardId") Long boardId);
 
     void deleteByBoardId(Long boardId);
+
+    // 회원별 댓글 수 조회
+    long countByMemberId(Long memberId);
 }

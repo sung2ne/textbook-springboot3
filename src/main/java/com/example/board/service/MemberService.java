@@ -1,11 +1,16 @@
-// 수정: src/main/java/com/example/board/service/MemberService.java (Spring Security 회원가입 추가)
+// 수정: src/main/java/com/example/board/service/MemberService.java
 package com.example.board.service;
 
 import com.example.board.domain.Member;
 import com.example.board.domain.Role;
+import com.example.board.dto.MemberListResponse;
 import com.example.board.dto.SignupRequest;
+import com.example.board.repository.BoardRepository;
+import com.example.board.repository.CommentRepository;
 import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +24,8 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BoardRepository boardRepository;
+    private final CommentRepository commentRepository;
 
     // 회원 가입 (PART 02)
     @Transactional
@@ -108,5 +115,64 @@ public class MemberService {
     @Transactional
     public void delete(Long id) {
         memberRepository.deleteById(id);
+    }
+
+    // 관리자용: 회원 목록 조회
+    public Page<MemberListResponse> findAllMembers(String keyword, Role role, Pageable pageable) {
+        if (keyword != null && !keyword.isEmpty() && role != null) {
+            return memberRepository.findByKeywordAndRole(keyword, role, pageable)
+                    .map(MemberListResponse::new);
+        } else if (keyword != null && !keyword.isEmpty()) {
+            return memberRepository.findByKeyword(keyword, pageable)
+                    .map(MemberListResponse::new);
+        } else if (role != null) {
+            return memberRepository.findByRole(role, pageable)
+                    .map(MemberListResponse::new);
+        }
+        return memberRepository.findAll(pageable)
+                .map(MemberListResponse::new);
+    }
+
+    // 회원의 게시글 수 조회
+    public long countBoardsByMemberId(Long memberId) {
+        return boardRepository.countByMemberId(memberId);
+    }
+
+    // 회원의 댓글 수 조회
+    public long countCommentsByMemberId(Long memberId) {
+        return commentRepository.countByMemberId(memberId);
+    }
+
+    // 역할 변경
+    @Transactional
+    public void changeRole(Long id, Role role) {
+        Member member = findById(id);
+        member.changeRole(role);
+    }
+
+    // 계정 활성화/비활성화 토글
+    @Transactional
+    public boolean toggleEnabled(Long id) {
+        Member member = findById(id);
+        member.setEnabled(!member.isEnabled());
+        return member.isEnabled();
+    }
+
+    // 회원 삭제 (관리자용)
+    @Transactional
+    public void deleteMember(Long id) {
+        Member member = findById(id);
+
+        // 관리자는 삭제할 수 없음
+        if (member.getRole() == Role.ADMIN) {
+            throw new IllegalStateException("관리자 계정은 삭제할 수 없습니다.");
+        }
+
+        // 활성 게시글이 있으면 삭제 불가 (선택 사항)
+        if (boardRepository.countByMemberId(id) > 0) {
+            throw new IllegalStateException("작성한 게시글이 있는 회원은 삭제할 수 없습니다.");
+        }
+
+        memberRepository.delete(member);
     }
 }

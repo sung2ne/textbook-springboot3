@@ -1,8 +1,13 @@
-// 수정: src/main/java/com/example/board/repository/MemberRepository.java (Spring Security 메서드 추가)
+// 수정: src/main/java/com/example/board/repository/MemberRepository.java
 package com.example.board.repository;
 
 import com.example.board.domain.Member;
+import com.example.board.domain.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -14,12 +19,20 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 아이디 중복 체크
     boolean existsByUsername(String username);
 
-    // 이메일로 조회
     Optional<Member> findByEmail(String email);
 
-    // 이메일 중복 체크
     boolean existsByEmail(String email);
 
-    // 이름으로 조회 (PART 03에서 추가)
     Optional<Member> findByName(String name);
+
+    // 키워드로 검색 (아이디, 이름, 이메일)
+    @Query("SELECT m FROM Member m WHERE m.username LIKE %:keyword% OR m.name LIKE %:keyword% OR m.email LIKE %:keyword%")
+    Page<Member> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    // 역할로 검색
+    Page<Member> findByRole(Role role, Pageable pageable);
+
+    // 키워드 + 역할로 검색
+    @Query("SELECT m FROM Member m WHERE (m.username LIKE %:keyword% OR m.name LIKE %:keyword% OR m.email LIKE %:keyword%) AND m.role = :role")
+    Page<Member> findByKeywordAndRole(@Param("keyword") String keyword, @Param("role") Role role, Pageable pageable);
 }
