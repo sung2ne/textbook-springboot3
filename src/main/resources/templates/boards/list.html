@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+<head>
+    <title>게시글 목록</title>
+</head>
+<body>
+    <main layout:fragment="content">
+        <h1 class="mb-4">게시글 목록</h1>
+
+        <div class="text-end mb-3">
+            <a th:href="@{/boards/new}" class="btn btn-primary">글쓰기</a>
+        </div>
+
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 10%">번호</th>
+                    <th style="width: 50%">제목</th>
+                    <th style="width: 15%">작성자</th>
+                    <th style="width: 25%">작성일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="board : ${boards}">
+                    <td th:text="${board.id}">1</td>
+                    <td>
+                        <a th:href="@{/boards/{id}(id=${board.id})}"
+                           th:text="${board.title}">제목</a>
+                    </td>
+                    <td th:text="${board.writer}">작성자</td>
+                    <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+</body>
+</html>
