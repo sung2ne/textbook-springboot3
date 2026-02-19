@@ -1,8 +1,12 @@
-// 새 파일: src/main/java/com/example/board/service/BoardService.java
+// 수정: src/main/java/com/example/board/service/BoardService.java
 package com.example.board.service;
 
+import com.example.board.domain.Board;
+import com.example.board.domain.Member;
+import com.example.board.dto.BoardForm;
 import com.example.board.dto.BoardListResponse;
 import com.example.board.repository.BoardRepository;
+import com.example.board.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,14 +19,39 @@ import org.springframework.transaction.annotation.Transactional;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final MemberRepository memberRepository;
 
-    // 목록 조회 (페이징)
+    // 게시글 저장
+    @Transactional
+    public Long save(BoardForm form) {
+        // 임시: 작성자명으로 회원 조회 또는 생성
+        Member member = memberRepository.findByName(form.getWriterName())
+                .orElseGet(() -> memberRepository.save(
+                        Member.builder()
+                                .name(form.getWriterName())
+                                .email(form.getWriterName() + "@temp.com")
+                                .password("temp")
+                                .build()
+                ));
+
+        // DTO → Entity 변환
+        Board board = Board.builder()
+                .title(form.getTitle())
+                .content(form.getContent())
+                .member(member)
+                .build();
+
+        // 저장
+        return boardRepository.save(board).getId();
+    }
+
+    // 목록 조회 (페이징) - 03장에서 작성
     public Page<BoardListResponse> findAll(Pageable pageable) {
         return boardRepository.findAll(pageable)
                 .map(BoardListResponse::new);
     }
 
-    // 검색 (제목 + 내용)
+    // 검색 (제목 + 내용) - 03장에서 작성
     public Page<BoardListResponse> search(String keyword, Pageable pageable) {
         if (keyword == null || keyword.isBlank()) {
             return findAll(pageable);

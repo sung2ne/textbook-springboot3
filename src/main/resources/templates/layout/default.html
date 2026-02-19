@@ -1,4 +1,4 @@
-<!-- 새 파일: src/main/resources/templates/layout/default.html -->
+<!-- 수정: src/main/resources/templates/layout/default.html (Flash Message 추가) -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
@@ -11,6 +11,14 @@
 </head>
 <body>
     <header th:replace="~{fragments/header :: header}"></header>
+
+    <!-- Flash Message 영역 추가 -->
+    <div class="container mt-3" th:if="${message}">
+        <div class="alert alert-success alert-dismissible fade show">
+            [[${message}]]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
 
     <main class="container" layout:fragment="content">
         <!-- 페이지별 콘텐츠 -->

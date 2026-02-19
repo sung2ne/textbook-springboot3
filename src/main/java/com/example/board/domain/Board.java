@@ -1,4 +1,4 @@
-// 새 파일: src/main/java/com/example/board/domain/Board.java
+// 수정: src/main/java/com/example/board/domain/Board.java
 package com.example.board.domain;
 
 import jakarta.persistence.*;
@@ -22,7 +22,9 @@ public class Board {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    private String writerName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Column(nullable = false)
     private int viewCount;
@@ -44,10 +46,10 @@ public class Board {
     }
 
     @Builder
-    public Board(String title, String content, String writerName) {
+    public Board(String title, String content, Member member) {
         this.title = title;
         this.content = content;
-        this.writerName = writerName;
+        this.member = member;
     }
 
     public void update(String title, String content) {
@@ -57,5 +59,9 @@ public class Board {
 
     public void increaseViewCount() {
         this.viewCount++;
+    }
+
+    public String getWriterName() {
+        return this.member != null ? this.member.getName() : "익명";
     }
 }
