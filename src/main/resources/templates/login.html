@@ -1,4 +1,4 @@
-<!-- 새 파일: src/main/resources/templates/login.html -->
+<!-- 수정: src/main/resources/templates/login.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -17,6 +17,12 @@
                     <h4 class="mb-0">로그인</h4>
                 </div>
                 <div class="card-body">
+                    <!-- 에러 메시지 - 추가 -->
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+                    <!-- 로그아웃 메시지 - 추가 -->
+                    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
                     <!-- 회원가입 완료 메시지 -->
                     <div th:if="${param.signup}" class="alert alert-success">
                         회원가입이 완료되었습니다. 로그인해주세요.

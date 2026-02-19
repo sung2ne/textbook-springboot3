@@ -43,13 +43,20 @@ public class SecurityConfig {
             )
             // 폼 로그인 설정
             .formLogin(form -> form
-                .loginPage("/login")              // 커스텀 로그인 페이지
-                .defaultSuccessUrl("/boards")     // 로그인 성공 시 이동
+                .loginPage("/login")
+                .loginProcessingUrl("/login")
+                .usernameParameter("username")
+                .passwordParameter("password")
+                .defaultSuccessUrl("/boards", true)
+                .failureUrl("/login?error")
                 .permitAll()
             )
             // 로그아웃 설정
             .logout(logout -> logout
-                .logoutSuccessUrl("/")            // 로그아웃 후 홈으로
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             );
 
