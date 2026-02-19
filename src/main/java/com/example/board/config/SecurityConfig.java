@@ -11,6 +11,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+
+import javax.sql.DataSource;
 
 import com.example.board.security.CustomUserDetailsService;
 
@@ -22,6 +26,15 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final DataSource dataSource;
+
+    // 영구 토큰 저장소 - 추가
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -56,8 +69,16 @@ public class SecurityConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/?logout")
                 .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
+                .deleteCookies("JSESSIONID", "remember-me")
                 .permitAll()
+            )
+            // 영구 토큰 방식 Remember-Me - 변경
+            .rememberMe(remember -> remember
+                .key("uniqueAndSecretKey")
+                .tokenValiditySeconds(86400 * 30)  // 30일로 연장
+                .tokenRepository(persistentTokenRepository())  // DB 저장소 사용
+                .userDetailsService(userDetailsService)
+                .rememberMeParameter("remember-me")
             );
 
         // H2 콘솔용 설정 (개발 환경)

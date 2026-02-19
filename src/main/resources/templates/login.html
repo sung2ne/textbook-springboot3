@@ -17,10 +17,10 @@
                     <h4 class="mb-0">로그인</h4>
                 </div>
                 <div class="card-body">
-                    <!-- 에러 메시지 - 추가 -->
+                    <!-- 에러 메시지 -->
                     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-                    <!-- 로그아웃 메시지 - 추가 -->
+                    <!-- 로그아웃 메시지 -->
                     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
                     <!-- 회원가입 완료 메시지 -->
@@ -40,6 +40,15 @@
                             <label for="password" class="form-label">비밀번호</label>
                             <input type="password" class="form-control" id="password"
                                    name="password" required>
+                        </div>
+
+                        <!-- Remember-Me 체크박스 - 추가 -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="remember-me" name="remember-me">
+                            <label class="form-check-label" for="remember-me">
+                                로그인 상태 유지
+                            </label>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">로그인</button>
