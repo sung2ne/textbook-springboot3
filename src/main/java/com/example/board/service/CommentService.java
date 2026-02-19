@@ -7,6 +7,7 @@ import com.example.board.domain.Member;
 import com.example.board.domain.Role;
 import com.example.board.dto.CommentForm;
 import com.example.board.dto.CommentResponse;
+import com.example.board.dto.MyCommentResponse;
 import com.example.board.repository.BoardRepository;
 import com.example.board.repository.CommentRepository;
 import com.example.board.repository.MemberRepository;
@@ -61,7 +62,7 @@ public class CommentService {
         return new CommentResponse(saved);
     }
 
-    // 댓글 작성 - 인증 기반 (추가)
+    // 댓글 작성 - 인증 기반 (02장에서 추가)
     @Transactional
     public CommentResponse save(Long boardId, CommentForm form, String username) {
         Board board = boardRepository.findById(boardId)
@@ -88,7 +89,7 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    // 댓글 삭제 - 인증 기반 (추가)
+    // 댓글 삭제 - 인증 기반 (02장에서 추가)
     @Transactional
     public void delete(Long commentId, String username, Role userRole) {
         Comment comment = commentRepository.findByIdWithMember(commentId)
@@ -112,7 +113,7 @@ public class CommentService {
         return new CommentResponse(comment);
     }
 
-    // 댓글 수정 - 인증 기반 (추가)
+    // 댓글 수정 - 인증 기반 (02장에서 추가)
     @Transactional
     public CommentResponse update(Long commentId, CommentForm form, String username, Role userRole) {
         Comment comment = commentRepository.findByIdWithMember(commentId)
@@ -127,13 +128,13 @@ public class CommentService {
         return new CommentResponse(comment);
     }
 
-    // 회원의 댓글 목록 - 마이페이지용 (추가)
+    // 회원의 댓글 목록 - 마이페이지용 (02장에서 추가)
     public Page<CommentResponse> findByMemberId(Long memberId, Pageable pageable) {
         return commentRepository.findByMemberId(memberId, pageable)
                 .map(CommentResponse::new);
     }
 
-    // 수정/삭제 권한 확인 (추가)
+    // 수정/삭제 권한 확인 (02장에서 추가)
     public boolean canEdit(Long commentId, String username, Role userRole) {
         Comment comment = commentRepository.findByIdWithMember(commentId)
                 .orElse(null);
@@ -141,5 +142,11 @@ public class CommentService {
         if (comment == null) return false;
 
         return comment.isWrittenBy(username) || userRole == Role.ADMIN;
+    }
+
+    // 회원의 댓글 목록 (게시글 정보 포함, 마이페이지용) - 추가
+    public Page<MyCommentResponse> findByMemberIdWithBoard(Long memberId, Pageable pageable) {
+        return commentRepository.findByMemberIdWithBoard(memberId, pageable)
+                .map(MyCommentResponse::new);
     }
 }

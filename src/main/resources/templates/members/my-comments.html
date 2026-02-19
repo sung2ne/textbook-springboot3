@@ -1,0 +1,54 @@
+<!-- 새 파일: src/main/resources/templates/members/my-comments.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+
+<head>
+    <title>내 댓글</title>
+</head>
+
+<body>
+<main layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>내 댓글</h2>
+        <a th:href="@{/members/profile}" class="btn btn-secondary">
+            프로필로 돌아가기
+        </a>
+    </div>
+
+    <!-- 댓글 목록 -->
+    <div class="list-group">
+        <div th:each="comment : ${comments}" class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <p class="mb-1" th:text="${comment.content}">
+                        댓글 내용
+                    </p>
+                    <small class="text-muted">
+                        게시글:
+                        <a th:href="@{/boards/{id}(id=${comment.boardId})}"
+                           th:text="${comment.boardTitle}">게시글 제목</a>
+                    </small>
+                </div>
+                <small class="text-muted"
+                       th:text="${#temporals.format(comment.createdAt,
+                           'yyyy-MM-dd HH:mm')}">
+                    2024-01-01
+                </small>
+            </div>
+        </div>
+        <div th:if="${comments.empty}"
+             class="list-group-item text-center py-4 text-muted">
+            작성한 댓글이 없습니다.
+        </div>
+    </div>
+
+    <!-- 페이징 (Fragment 사용) -->
+    <nav th:if="${comments.totalPages > 1}"
+         th:replace="~{fragments/pagination :: pagination(
+             ${comments}, '/members/my-comments')}">
+    </nav>
+</main>
+</body>
+</html>

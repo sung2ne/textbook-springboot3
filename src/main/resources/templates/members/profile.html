@@ -1,4 +1,4 @@
-<!-- 새 파일: src/main/resources/templates/members/profile.html -->
+<!-- 수정: src/main/resources/templates/members/profile.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
@@ -79,6 +79,13 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- 마이페이지 링크 - 추가 -->
+    <hr class="my-4">
+    <div class="d-flex gap-2">
+        <a th:href="@{/members/my-boards}" class="btn btn-outline-primary">내 게시글</a>
+        <a th:href="@{/members/my-comments}" class="btn btn-outline-primary">내 댓글</a>
     </div>
 
     <div class="mt-4">

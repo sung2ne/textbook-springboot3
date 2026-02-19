@@ -1,0 +1,63 @@
+<!-- 새 파일: src/main/resources/templates/members/my-boards.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default}">
+
+<head>
+    <title>내 게시글</title>
+</head>
+
+<body>
+<main layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>내 게시글</h2>
+        <a th:href="@{/members/profile}" class="btn btn-secondary">
+            프로필로 돌아가기
+        </a>
+    </div>
+
+    <!-- 게시글 목록 -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 80px;">번호</th>
+                    <th>제목</th>
+                    <th style="width: 100px;">조회</th>
+                    <th style="width: 120px;">작성일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="board, stat : ${boards}">
+                    <td th:text="${boards.totalElements -
+                        (boards.number * boards.size) - stat.index}">1</td>
+                    <td>
+                        <a th:href="@{/boards/{id}(id=${board.id})}"
+                           th:text="${board.title}">제목</a>
+                        <span th:if="${board.commentCount > 0}"
+                              class="text-muted small">
+                            [<span th:text="${board.commentCount}">0</span>]
+                        </span>
+                    </td>
+                    <td th:text="${board.viewCount}">0</td>
+                    <td th:text="${#temporals.format(board.createdAt,
+                        'yyyy-MM-dd')}">2024-01-01</td>
+                </tr>
+                <tr th:if="${boards.empty}">
+                    <td colspan="4" class="text-center py-4">
+                        작성한 게시글이 없습니다.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이징 (Fragment 사용) -->
+    <nav th:if="${boards.totalPages > 1}"
+         th:replace="~{fragments/pagination :: pagination(
+             ${boards}, '/members/my-boards')}">
+    </nav>
+</main>
+</body>
+</html>

@@ -51,10 +51,13 @@ public class SecurityConfig {
                 .requestMatchers("/", "/boards", "/boards/{id}").permitAll()
                 .requestMatchers("/login", "/members/signup").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                // 댓글 API - 추가
+                // 댓글 API - 02장/04에서 추가
                 .requestMatchers(HttpMethod.GET, "/api/boards/*/comments").permitAll()
                 .requestMatchers("/api/boards/*/comments").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
+                // 마이페이지 - 추가
+                .requestMatchers("/members/my-boards", "/members/my-comments").authenticated()
+                .requestMatchers("/members/profile/**").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
