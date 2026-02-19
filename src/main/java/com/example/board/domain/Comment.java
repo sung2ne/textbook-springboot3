@@ -46,9 +46,24 @@ public class Comment {
         return this.member != null ? this.member.getName() : "익명";
     }
 
-    // 댓글 수정 - 09장/01
+    // 댓글 수정
     public void update(String content) {
         this.content = content;
+    }
+
+    // 작성자 확인 (username) - 추가
+    public boolean isWrittenBy(String username) {
+        return this.member != null && this.member.getUsername().equals(username);
+    }
+
+    // 작성자 확인 (Member ID) - 추가
+    public boolean isWrittenBy(Long memberId) {
+        return this.member != null && this.member.getId().equals(memberId);
+    }
+
+    // 회원 아이디 반환 (null-safe) - 추가
+    public String getMemberUsername() {
+        return this.member != null ? this.member.getUsername() : null;
     }
 
     // 작성자 변경 (회원 탈퇴 시 익명 처리) - 추가

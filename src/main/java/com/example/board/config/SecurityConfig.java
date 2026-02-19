@@ -3,6 +3,7 @@ package com.example.board.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -47,10 +48,13 @@ public class SecurityConfig {
             // 요청 인가 설정
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                .requestMatchers("/boards/new", "/boards/{id}/edit").authenticated()
                 .requestMatchers("/", "/boards", "/boards/{id}").permitAll()
                 .requestMatchers("/login", "/members/signup").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                // 댓글 API - 추가
+                .requestMatchers(HttpMethod.GET, "/api/boards/*/comments").permitAll()
+                .requestMatchers("/api/boards/*/comments").authenticated()
+                .requestMatchers("/api/comments/**").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
@@ -95,7 +99,7 @@ public class SecurityConfig {
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
             )
-            // 예외 처리
+            // 예외 처리 - 커스텀 핸들러 사용
             .exceptionHandling(exception -> exception
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -103,11 +107,7 @@ public class SecurityConfig {
 
         // H2 콘솔용 설정
         http
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
-                .ignoringRequestMatchers("/admin/members/*/role")
-                .ignoringRequestMatchers("/admin/members/*/toggle")
-            )
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
