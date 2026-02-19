@@ -21,11 +21,7 @@ public class Board {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // 기존: private String writerName;
-    // 변경: Member 객체 참조로 대체
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    private String writerName;
 
     @Column(nullable = false)
     private int viewCount;
@@ -47,10 +43,10 @@ public class Board {
     }
 
     @Builder
-    public Board(String title, String content, Member member) {
+    public Board(String title, String content, String writerName) {
         this.title = title;
         this.content = content;
-        this.member = member;  // writerName → member
+        this.writerName = writerName;
     }
 
     public void update(String title, String content) {
@@ -60,11 +56,5 @@ public class Board {
 
     public void increaseViewCount() {
         this.viewCount++;
-    }
-
-    // 작성자 이름 반환 (편의 메서드)
-    // 기존 writerName 사용 코드와의 호환성 유지
-    public String getWriterName() {
-        return this.member != null ? this.member.getName() : "익명";
     }
 }
