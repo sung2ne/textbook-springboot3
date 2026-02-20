@@ -111,27 +111,34 @@ public class ProfileController {
         }
     }
 
-    // 회원 탈퇴 폼 - 추가
+    // 회원 탈퇴 폼 - 13장/04
     @GetMapping("/delete")
     public String deleteForm(Model model) {
         model.addAttribute("memberDeleteRequest", new MemberDeleteRequest());
         return "members/member-delete";
     }
 
-    // 회원 탈퇴 처리 - 추가
+    // 회원 탈퇴 처리 - 13장/04
     @PostMapping("/delete")
     public String delete(@AuthenticationPrincipal CustomUserDetails userDetails,
                          @Valid @ModelAttribute MemberDeleteRequest request,
                          BindingResult bindingResult,
-                         RedirectAttributes redirectAttributes) {
+                         HttpServletRequest httpRequest,
+                         HttpServletResponse httpResponse) {
         if (bindingResult.hasErrors()) {
             return "members/member-delete";
         }
 
         try {
             memberService.deleteMember(userDetails.getMemberId(), request);
-            redirectAttributes.addFlashAttribute("message", "회원 탈퇴가 완료되었습니다.");
-            return "redirect:/logout";
+
+            // 탈퇴 후 로그아웃 처리 (세션 무효화)
+            new SecurityContextLogoutHandler().logout(
+                    httpRequest, httpResponse,
+                    SecurityContextHolder.getContext().getAuthentication()
+            );
+
+            return "redirect:/";
         } catch (IllegalArgumentException e) {
             bindingResult.reject("deleteFailed", e.getMessage());
             return "members/member-delete";
