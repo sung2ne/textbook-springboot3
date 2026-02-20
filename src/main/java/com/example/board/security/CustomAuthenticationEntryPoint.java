@@ -35,12 +35,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                 request.getRequestURI(),
                 authException.getClass().getSimpleName());
 
-        String errorMessage = determineErrorMessage(authException);
-
         if (isAjaxRequest(request)) {
+            String errorMessage = determineErrorMessage(authException);
             handleAjaxRequest(response, errorMessage);
         } else {
-            request.getSession().setAttribute("loginError", errorMessage);
             saveTargetUrl(request);
             response.sendRedirect("/login");
         }
@@ -87,21 +85,5 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         errorDetails.put("status", 401);
 
         response.getWriter().write(objectMapper.writeValueAsString(errorDetails));
-    }
-
-    private void handleWebRequest(HttpServletRequest request,
-                                  HttpServletResponse response)
-            throws IOException {
-        // HTML 페이지 요청만 REDIRECT_URL 저장 (favicon, 이미지 등 정적 리소스 제외)
-        String acceptHeader = request.getHeader("Accept");
-        if (acceptHeader != null && acceptHeader.contains("text/html")) {
-            String targetUrl = request.getRequestURI();
-            if (request.getQueryString() != null) {
-                targetUrl += "?" + request.getQueryString();
-            }
-            request.getSession().setAttribute("REDIRECT_URL", targetUrl);
-        }
-
-        response.sendRedirect("/login");
     }
 }
