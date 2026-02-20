@@ -53,8 +53,11 @@ public class MemberService {
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다");
         }
 
-        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-            if (memberRepository.existsByEmail(request.getEmail())) {
+        String email = (request.getEmail() == null || request.getEmail().isBlank())
+                ? null : request.getEmail();
+
+        if (email != null) {
+            if (memberRepository.existsByEmail(email)) {
                 throw new IllegalArgumentException("이미 사용 중인 이메일입니다");
             }
         }
@@ -67,7 +70,7 @@ public class MemberService {
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
-                .email(request.getEmail())
+                .email(email)
                 .role(Role.USER)
                 .build();
 
