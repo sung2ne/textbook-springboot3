@@ -1,6 +1,9 @@
 # 수정: src/main/resources/application.yml
 spring:
   # 기존 설정...
+  servlet:
+    multipart:
+      resolve-lazily: true  # multipart/form-data CSRF 처리
 
 server:
   error:
