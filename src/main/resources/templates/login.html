@@ -17,26 +17,18 @@
                     <h4 class="mb-0">로그인</h4>
                 </div>
                 <div class="card-body">
-                    <!-- 에러 메시지 -->
+                    <!-- 로그인 실패 메시지 -->
                     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-
-                    <!-- 로그아웃 메시지 -->
-                    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
                     <!-- 회원가입 완료 메시지 -->
                     <div th:if="${param.signup}" class="alert alert-success">
                         회원가입이 완료되었습니다. 로그인해주세요.
                     </div>
 
-                    <!-- 로그인 필요 안내 (EntryPoint에서 저장) - 추가 -->
-                    <!-- 회원가입 직후(param.signup)에는 표시하지 않음 -->
+                    <!-- 로그인 필요 안내 (보호된 페이지 접근 시) -->
                     <div th:if="${session.REDIRECT_URL != null and param.signup == null}" class="alert alert-info">
                         요청하신 페이지를 보려면 로그인이 필요합니다.
                     </div>
-
-                    <!-- 세션 기반 에러 메시지 (EntryPoint에서 저장) - 추가 -->
-                    <div th:if="${session.loginError != null and param.signup == null}" class="alert alert-danger"
-                         th:text="${session.loginError}"></div>
 
                     <!-- 로그인 폼 -->
                     <form th:action="@{/login}" method="post">
