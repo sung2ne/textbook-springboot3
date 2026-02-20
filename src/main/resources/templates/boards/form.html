@@ -96,7 +96,8 @@
         }
 
         fetch('/files/' + id, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: { [csrfHeader]: csrfToken }
         })
         .then(response => {
             if (response.ok) {
