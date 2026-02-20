@@ -8,6 +8,10 @@ spring:
   thymeleaf:
     cache: false
 
+  servlet:
+    multipart:
+      resolve-lazily: true  # multipart/form-data CSRF 처리
+
 logging:
   level:
     com.example.board: DEBUG
