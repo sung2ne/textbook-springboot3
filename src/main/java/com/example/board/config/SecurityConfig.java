@@ -24,6 +24,12 @@ import com.example.board.security.CustomAuthenticationEntryPoint;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.web.multipart.support.MultipartFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.Ordered;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -133,5 +139,18 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
+    }
+    // MultipartFilter를 Spring Security 앞에 등록 (multipart/form-data CSRF 처리)
+    @Bean(name = "filterMultipartResolver")
+    public MultipartResolver filterMultipartResolver() {
+        return new StandardServletMultipartResolver();
+    }
+
+    @Bean
+    public FilterRegistrationBean<MultipartFilter> multipartFilterRegistration() {
+        FilterRegistrationBean<MultipartFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new MultipartFilter());
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registration;
     }
 }
