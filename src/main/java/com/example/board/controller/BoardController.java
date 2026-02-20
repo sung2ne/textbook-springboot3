@@ -98,9 +98,11 @@ public class BoardController {
                          BindingResult bindingResult,
                          @RequestParam(required = false) List<MultipartFile> files,
                          @AuthenticationPrincipal CustomUserDetails userDetails,
+                         Model model,
                          RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("writerName", userDetails.getName());
             return "boards/form";
         }
 
@@ -127,6 +129,7 @@ public class BoardController {
                 .map(AttachmentResponse::new)
                 .collect(Collectors.toList());
         model.addAttribute("boardForm", form);
+        model.addAttribute("writerName", form.getWriterName());
         model.addAttribute("attachments", attachments);
         return "boards/form";
     }
@@ -138,12 +141,14 @@ public class BoardController {
                          BindingResult bindingResult,
                          @RequestParam(required = false) List<MultipartFile> files,
                          @AuthenticationPrincipal CustomUserDetails userDetails,
+                         Model model,
                          RedirectAttributes redirectAttributes) {
 
         // 권한 체크
         checkEditPermission(id, userDetails);
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("writerName", boardService.getFormById(id).getWriterName());
             return "boards/form";
         }
 
