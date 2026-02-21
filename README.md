@@ -6,14 +6,16 @@ Spring Boot 3로 게시판을 만들어가는 실습 중심 교재입니다. 각
 
 ## 기술 스택
 
-| 항목 | 버전 |
-|------|------|
-| Spring Boot | 3.5.10 |
+| 항목 | 버전/설명 |
+|------|-----------|
+| Spring Boot | 3.5.11 |
 | Java | 17 |
 | Gradle | Groovy DSL |
 | Spring Data JPA | (Spring Boot 관리) |
 | Spring Security | (Spring Boot 관리) |
 | Thymeleaf | (Spring Boot 관리) |
+| Thymeleaf Layout Dialect | 레이아웃 상속 |
+| Thymeleaf Spring Security 6 | `sec:authorize` 등 보안 태그 |
 | H2 Database | 개발용 내장 DB |
 | MariaDB | 운영용 DB |
 | Lombok | (Spring Boot 관리) |
@@ -38,6 +40,9 @@ git checkout part03/chapter-05
 
 # PART 04의 07장까지 완성된 코드 (로그인)
 git checkout part04/chapter-07
+
+# 최종 완성 코드
+git checkout part05/chapter-04
 ```
 
 ### 프로젝트 실행
@@ -47,10 +52,38 @@ git checkout part04/chapter-07
 ./gradlew build
 
 # 개발 모드로 실행 (H2 메모리 DB)
-./gradlew bootRun
+./gradlew bootRun --args='--spring.profiles.active=dev'
 
 # 브라우저에서 확인
 # http://localhost:8080
+```
+
+## 프로젝트 구조
+
+```
+src/main/java/com/example/board/
+├── config/          # SecurityConfig 등 설정
+├── controller/      # BoardController, CommentApiController, AdminController
+├── domain/          # Board, Member, Comment, Attachment, Role 엔티티
+├── dto/             # BoardForm, BoardListResponse, CommentForm 등 DTO
+├── exception/       # GlobalExceptionHandler, CustomErrorController
+├── repository/      # JPA Repository 인터페이스
+├── security/        # CustomUserDetails, CustomUserDetailsService
+├── service/         # BoardService, MemberService, CommentService
+└── validation/      # 커스텀 검증 어노테이션
+
+src/main/resources/
+├── templates/       # Thymeleaf 템플릿
+│   ├── layout/      #   레이아웃 (default.html)
+│   ├── fragments/   #   공통 조각 (header, footer)
+│   ├── boards/      #   게시판 (list, detail, form)
+│   ├── members/     #   회원 (signup, profile, mypage)
+│   ├── admin/       #   관리자 페이지
+│   └── error/       #   에러 페이지 (403, 404, 500)
+├── application.yml
+├── application-dev.yml   # H2 DB (개발)
+├── application-prod.yml  # MariaDB (운영)
+└── data.sql              # 초기 데이터
 ```
 
 ## 브랜치 목록
@@ -115,6 +148,26 @@ git checkout part04/chapter-07
 | `part05/chapter-02` | 댓글 인증 연동 |
 | `part05/chapter-03` | 마이페이지 |
 | `part05/chapter-04` | 프로젝트 마무리 |
+
+## 주요 기능
+
+### 게시판
+- 게시글 CRUD (목록, 상세, 등록, 수정, 삭제)
+- 검색 및 페이징
+- 파일 첨부 (다중 업로드, 다운로드, 이미지 미리보기)
+- 댓글 REST API (AJAX 기반 등록, 수정, 삭제)
+
+### 인증/인가
+- Spring Security 폼 로그인/로그아웃
+- 회원가입 (이메일 중복 검사, 비밀번호 암호화)
+- Remember Me (자동 로그인)
+- 권한 기반 접근 제어 (USER, ADMIN)
+- CSRF 보호 (폼 + AJAX)
+- 프로필 관리 (정보 수정, 비밀번호 변경, 회원 탈퇴)
+
+### 관리자
+- 회원 목록 관리
+- 관리자 권한으로 게시글/댓글 삭제
 
 ## 활용 팁
 
