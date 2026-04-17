@@ -1,13 +1,13 @@
 # 소설처럼 읽는 스프링부트 3
 
-> 위키독스 교재: https://wikidocs.net/book/18840
+> iBetter Books 교재: https://text.ibetter.kr/springboot3
 
 Spring Boot 3로 게시판을 만들어가는 실습 중심 교재입니다. 각 챕터별 브랜치를 제공하므로, 원하는 시점의 완성된 코드를 바로 받아 실행할 수 있습니다.
 
 ## 기술 스택
 
 | 항목 | 버전/설명 |
-|------|-----------|
+|------|-----------| 
 | Spring Boot | 3.5.11 |
 | Java | 17 |
 | Gradle | Groovy DSL |
