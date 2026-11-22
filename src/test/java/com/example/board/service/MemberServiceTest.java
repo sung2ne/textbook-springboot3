@@ -22,13 +22,24 @@ class MemberServiceTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    // 로그인 아이디가 필수이므로 signup으로 회원을 만든다.
+    private Long joinMember(String username, String name, String email, String password) {
+        SignupRequest request = new SignupRequest();
+        request.setUsername(username);
+        request.setName(name);
+        request.setEmail(email);
+        request.setPassword(password);
+        request.setPasswordConfirm(password);
+        return memberService.signup(request);
+    }
+
     // ===== PART 02에서 작성한 테스트 =====
 
     @Test
     @DisplayName("회원가입 성공")
     void join_success() {
         // when
-        Long memberId = memberService.join("홍길동", "hong@test.com", "1234");
+        Long memberId = joinMember("hong", "홍길동", "hong@test.com", "1234");
 
         // then
         Member found = memberRepository.findById(memberId).orElseThrow();
@@ -40,21 +51,21 @@ class MemberServiceTest {
     @DisplayName("이메일 중복 시 예외 발생")
     void join_duplicateEmail() {
         // given
-        memberService.join("홍길동", "hong@test.com", "1234");
+        joinMember("hong", "홍길동", "hong@test.com", "1234");
 
         // when & then
         assertThatThrownBy(() ->
-            memberService.join("김철수", "hong@test.com", "5678")
+            joinMember("hong2", "김철수", "hong@test.com", "5678")
         )
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("이미 사용 중인 이메일입니다.");
+        .hasMessage("이미 사용 중인 이메일입니다");
     }
 
     @Test
     @DisplayName("이름 수정 - 변경 감지")
     void updateName() {
         // given
-        Long memberId = memberService.join("홍길동", "hong@test.com", "1234");
+        Long memberId = joinMember("hong", "홍길동", "hong@test.com", "1234");
 
         // when
         memberService.updateName(memberId, "홍길순");
@@ -71,7 +82,7 @@ class MemberServiceTest {
             memberService.findById(999L)
         )
         .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("회원을 찾을 수 없습니다.");
+        .hasMessage("회원을 찾을 수 없습니다");
     }
 
     // ===== Spring Security 회원가입 테스트 (추가) =====
