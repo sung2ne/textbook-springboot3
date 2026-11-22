@@ -48,6 +48,7 @@ public class SecurityConfig {
             // 요청 인가 설정
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/boards/new", "/boards/{id}/edit").authenticated()
                 .requestMatchers("/", "/boards", "/boards/{id}").permitAll()
                 .requestMatchers("/login", "/members/signup").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
