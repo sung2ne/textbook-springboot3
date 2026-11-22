@@ -79,7 +79,7 @@ class BoardRepositoryTest {
 
         // when
         PageRequest pageable = PageRequest.of(0, 10, Sort.by("id").descending());
-        Page<Board> result = boardRepository.findByTitleContaining("스프링", pageable);
+        Page<Board> result = boardRepository.findByTitleContainingOrContentContaining("스프링", "스프링", pageable);
 
         // then
         assertThat(result.getTotalElements()).isEqualTo(2);
