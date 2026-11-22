@@ -30,6 +30,7 @@ class BoardRepositoryTest {
         // 테스트용 회원 생성
         testMember = memberRepository.save(
                 Member.builder()
+                        .username("test")
                         .name("테스터")
                         .email("test@test.com")
                         .password("1234")
