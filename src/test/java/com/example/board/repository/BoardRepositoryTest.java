@@ -43,7 +43,7 @@ class BoardRepositoryTest {
         Board board = Board.builder()
                 .title("테스트 제목")
                 .content("테스트 내용")
-                .member(testMember)
+                .writerName(testMember.getName())
                 .build();
 
         // when
@@ -52,7 +52,7 @@ class BoardRepositoryTest {
         // then
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getTitle()).isEqualTo("테스트 제목");
-        assertThat(saved.getMember().getName()).isEqualTo("테스터");
+        assertThat(saved.getWriterName()).isEqualTo("테스터");
     }
 
     @Test
@@ -62,24 +62,24 @@ class BoardRepositoryTest {
         boardRepository.save(Board.builder()
                 .title("스프링 부트 기초")
                 .content("내용1")
-                .member(testMember)
+                .writerName(testMember.getName())
                 .build());
 
         boardRepository.save(Board.builder()
                 .title("스프링 시큐리티")
                 .content("내용2")
-                .member(testMember)
+                .writerName(testMember.getName())
                 .build());
 
         boardRepository.save(Board.builder()
                 .title("JPA 기초")
                 .content("내용3")
-                .member(testMember)
+                .writerName(testMember.getName())
                 .build());
 
         // when
         PageRequest pageable = PageRequest.of(0, 10, Sort.by("id").descending());
-        Page<Board> result = boardRepository.findByTitleContaining("스프링", pageable);
+        Page<Board> result = boardRepository.findByTitleContainingOrContentContaining("스프링", "스프링", pageable);
 
         // then
         assertThat(result.getTotalElements()).isEqualTo(2);
@@ -88,22 +88,4 @@ class BoardRepositoryTest {
                 .containsExactly("스프링 시큐리티", "스프링 부트 기초");
     }
 
-    @Test
-    @DisplayName("Fetch Join 테스트")
-    void findByIdWithMember() {
-        // given
-        Board board = boardRepository.save(
-                Board.builder()
-                        .title("테스트")
-                        .content("내용")
-                        .member(testMember)
-                        .build()
-        );
-
-        // when
-        Board found = boardRepository.findByIdWithMember(board.getId()).orElseThrow();
-
-        // then
-        assertThat(found.getMember().getName()).isEqualTo("테스터");
-    }
 }
