@@ -1,4 +1,4 @@
-# 소설처럼 읽는 스프링부트 3
+# 실전 스프링부트 3
 
 > iBetter Books 교재: https://text.ibetter.kr/springboot3
 
