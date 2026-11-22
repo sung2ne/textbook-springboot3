@@ -22,6 +22,7 @@ class MemberRepositoryTest {
     void save() {
         // given
         Member member = Member.builder()
+                .username("hong")
                 .name("홍길동")
                 .email("hong@test.com")
                 .password("1234")
@@ -41,6 +42,7 @@ class MemberRepositoryTest {
     void findByEmail() {
         // given
         memberRepository.save(Member.builder()
+                .username("hong")
                 .name("홍길동")
                 .email("hong@test.com")
                 .password("1234")
@@ -59,6 +61,7 @@ class MemberRepositoryTest {
     void existsByEmail() {
         // given
         memberRepository.save(Member.builder()
+                .username("hong")
                 .name("홍길동")
                 .email("hong@test.com")
                 .password("1234")
@@ -74,6 +77,7 @@ class MemberRepositoryTest {
     void delete() {
         // given
         Member member = memberRepository.save(Member.builder()
+                .username("hong")
                 .name("홍길동")
                 .email("hong@test.com")
                 .password("1234")
